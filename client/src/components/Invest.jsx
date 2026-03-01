@@ -92,6 +92,7 @@ const Invest = () => {
 
   useEffect(() => {
     checkDemoPlanStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkDemoPlanStatus = async () => {

@@ -3,7 +3,6 @@ import { Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-r
 import { useAuth0 } from '@auth0/auth0-react';
 import Dock from './components/Dock';
 import ClickSpark from './components/ClickSpark';
-import LiquidEther from './components/LiquidEther';
 import LightRays from './components/LightRays';
 import { ScrollFadeIn, ScrollScaleIn, ScrollSlideIn } from './components/ScrollAnimation';
 import { TradingScene, CoinsScene } from './components/Scene3D';
@@ -15,14 +14,6 @@ const Home = () => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
-
-  const items = [
-    { icon: <VscHome size={18} />, label: 'Home', onClick: () => goTo('home') },
-    { icon: <VscQuestion size={18} />, label: 'FAQ', onClick: () => goTo('faq') },
-    { icon: <VscShield size={18} />, label: 'Privacy', onClick: () => goTo('privacy') },
-    { icon: <VscFile size={18} />, label: 'Terms', onClick: () => goTo('terms') },
-    { icon: <VscMail size={18} />, label: 'Contact', onClick: () => goTo('contact') },
-  ];
 
   const navigate = useNavigate();
 

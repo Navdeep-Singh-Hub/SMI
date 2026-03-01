@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { VscCreditCard, VscGraph, VscCalendar, VscCheck, VscStarFull } from 'react-icons/vsc';
+import { VscCalendar, VscCheck, VscStarFull } from 'react-icons/vsc';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -10,6 +10,7 @@ const Plans = () => {
 
   useEffect(() => {
     checkDemoPlanStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkDemoPlanStatus = async () => {

@@ -116,6 +116,7 @@ const Deposit = () => {
   useEffect(() => {
     fetchBalance();
     fetchTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Start/stop polling when transaction changes
@@ -141,6 +142,7 @@ const Deposit = () => {
         clearInterval(pollingIntervalRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTransaction?.id]);
 
   const handleAmountChange = (e) => {

@@ -31,6 +31,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchUserBalance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserBalance = async () => {
