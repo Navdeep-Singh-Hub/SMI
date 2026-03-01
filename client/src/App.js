@@ -10,11 +10,6 @@ import Dashboard from './components/Dashboard';
 import { VscHome, VscQuestion, VscShield, VscFile, VscMail } from 'react-icons/vsc';
 
 const Home = () => {
-  const goTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const navigate = useNavigate();
 
   return (
