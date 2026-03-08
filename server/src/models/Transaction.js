@@ -18,12 +18,17 @@ const transactionSchema = new mongoose.Schema(
     qrCode: { type: String },
     description: { type: String },
     planName: { type: String }, // Track which investment plan was purchased
+    planDailyReturn: { type: Number }, // e.g. 2.5 for 2.5%
+    planDurationDays: { type: Number }, // e.g. 7, 14, 30
     // NOWPayments fields
     nowpaymentsPaymentId: { type: String },
     nowpaymentsInvoiceUrl: { type: String },
     nowpaymentsQrCode: { type: String },
     cryptoCurrency: { type: String },
-    cryptoAmount: { type: Number }
+    cryptoAmount: { type: Number },
+    // Withdrawal fields
+    payMethod: { type: String }, // 'crypto' | 'bank'
+    cryptoAddress: { type: String }
   },
   { timestamps: true }
 );

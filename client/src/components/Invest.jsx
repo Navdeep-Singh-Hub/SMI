@@ -4,13 +4,15 @@ import { VscCreditCard, VscGraph, VscCalendar, VscCheck } from 'react-icons/vsc'
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const Invest = () => {
+const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [activeTab, setActiveTab] = useState('plans'); // 'plans' or 'active'
   const [hasPurchasedDemoPlan, setHasPurchasedDemoPlan] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeInvestments, setActiveInvestments] = useState([]);
+  const [loadingActive, setLoadingActive] = useState(false);
 
   const investmentPlans = [
     {
@@ -65,35 +67,42 @@ const Invest = () => {
     }
   ];
 
-  const activeInvestments = [
-    {
-      id: 1,
-      plan: 'Gold',
-      amount: 10000,
-      dailyReturn: 4.0,
-      startDate: '2024-01-15',
-      endDate: '2024-02-14',
-      daysRemaining: 12,
-      totalEarned: 720,
-      status: 'active'
-    },
-    {
-      id: 2,
-      plan: 'Silver',
-      amount: 5000,
-      dailyReturn: 3.5,
-      startDate: '2024-01-20',
-      endDate: '2024-02-10',
-      daysRemaining: 5,
-      totalEarned: 315,
-      status: 'active'
+  const fetchActiveInvestments = async () => {
+    try {
+      setLoadingActive(true);
+      const token = await getAccessTokenSilently();
+      if (!token) return;
+      const response = await fetch(`${API_BASE}/invest/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setActiveInvestments(data.investments || []);
+      }
+    } catch (err) {
+      console.error('Fetch active investments error:', err);
+    } finally {
+      setLoadingActive(false);
     }
-  ];
+  };
 
   useEffect(() => {
     checkDemoPlanStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'active') fetchActiveInvestments();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When parent passes a plan from Plans page, pre-select it and show invest form
+  useEffect(() => {
+    if (initialPlanForInvest) {
+      setSelectedPlan(initialPlanForInvest);
+      setActiveTab('plans');
+      if (typeof onClearInitialPlan === 'function') onClearInitialPlan();
+    }
+  }, [initialPlanForInvest]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkDemoPlanStatus = async () => {
     try {
@@ -193,14 +202,9 @@ const Invest = () => {
         alert(`Investment of $${amount} in ${selectedPlan.name} plan created successfully!`);
         setInvestmentAmount('');
         setSelectedPlan(null);
-        
-        // Update Demo Plan status if it was purchased
-        if (selectedPlan.name === 'Demo Plan') {
-          setHasPurchasedDemoPlan(true);
-        }
-        
-        // Refresh balance (you might want to trigger a refresh in Dashboard)
+        if (selectedPlan.name === 'Demo Plan') setHasPurchasedDemoPlan(true);
         window.dispatchEvent(new Event('balanceUpdated'));
+        fetchActiveInvestments();
       } else {
         alert(data.message || 'Failed to create investment. Please try again.');
         if (data.alreadyPurchased) {
@@ -216,17 +220,17 @@ const Invest = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Invest</h2>
-        <p className="text-white/60">Choose an investment plan and start earning</p>
+    <div className="max-w-6xl mx-auto px-1 sm:px-0">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Invest</h2>
+        <p className="text-white/60 text-sm sm:text-base">Choose an investment plan and start earning</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-white/20">
+      <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-white/20 overflow-x-auto">
         <button
           onClick={() => setActiveTab('plans')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'plans'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
@@ -236,26 +240,26 @@ const Invest = () => {
         </button>
         <button
           onClick={() => setActiveTab('active')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'active'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
           }`}
         >
-          Active Investments ({activeInvestments.length})
+          Active ({activeInvestments.length})
         </button>
       </div>
 
       {activeTab === 'plans' && (
         <>
           {/* Investment Plans Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {investmentPlans.map((plan) => {
               const isDemoPlanPurchased = plan.name === 'Demo Plan' && hasPurchasedDemoPlan;
               return (
                 <div
                   key={plan.id}
-                  className={`bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm transition-all ${
+                  className={`bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 backdrop-blur-sm transition-all ${
                     selectedPlan?.id === plan.id ? 'ring-2 ring-purple-500' : ''
                   } ${
                     isDemoPlanPurchased 
@@ -299,7 +303,7 @@ const Invest = () => {
                 <button
                   onClick={() => handleInvest(plan)}
                   disabled={isDemoPlanPurchased}
-                  className={`w-full py-2 rounded-lg bg-gradient-to-r ${plan.color} text-white font-semibold transition-opacity ${
+                  className={`w-full min-h-[44px] py-2 rounded-lg bg-gradient-to-r ${plan.color} text-white font-semibold transition-opacity ${
                     isDemoPlanPurchased 
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'hover:opacity-90'
@@ -314,7 +318,7 @@ const Invest = () => {
 
           {/* Investment Form */}
           {selectedPlan && (
-            <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm">
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm">
               <div className="flex items-center gap-3 mb-6">
                 <div className={`p-3 bg-gradient-to-r ${selectedPlan.color} rounded-lg`}>
                   <VscGraph className="text-white" size={24} />
@@ -356,11 +360,11 @@ const Invest = () => {
                   )}
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     type="submit"
                     disabled={!investmentAmount || parseFloat(investmentAmount) <= 0 || loading || (selectedPlan.name === 'Demo Plan' && hasPurchasedDemoPlan)}
-                    className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Processing...' : 'Confirm Investment'}
                   </button>
@@ -370,7 +374,7 @@ const Invest = () => {
                       setSelectedPlan(null);
                       setInvestmentAmount('');
                     }}
-                    className="px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors"
+                    className="min-h-[44px] px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors"
                   >
                     Cancel
                   </button>
@@ -383,22 +387,26 @@ const Invest = () => {
 
       {activeTab === 'active' && (
         <div className="space-y-4">
-          {activeInvestments.length === 0 ? (
+          {loadingActive ? (
             <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
-              <p className="text-white/60">No active investments yet</p>
+              <p className="text-white/60">Loading...</p>
+            </div>
+          ) : activeInvestments.length === 0 ? (
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+              <p className="text-white/60">No active investments yet. Invest in a plan to see them here.</p>
             </div>
           ) : (
             <>
               {/* Today's Earnings Summary */}
-              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white/60 text-sm mb-1">Today's Total Earnings</p>
-                    <p className="text-3xl font-bold text-green-400">${getTotalTodaysEarnings().toFixed(2)}</p>
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-4 sm:p-6 backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-white/60 text-xs sm:text-sm mb-1">Today's Total Earnings</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-400 truncate">${getTotalTodaysEarnings().toFixed(2)}</p>
                     <p className="text-white/60 text-xs mt-2">From {activeInvestments.length} active investment{activeInvestments.length !== 1 ? 's' : ''}</p>
                   </div>
-                  <div className="p-4 bg-green-500/20 rounded-xl">
-                    <VscGraph className="text-green-400" size={32} />
+                  <div className="p-3 sm:p-4 bg-green-500/20 rounded-xl flex-shrink-0">
+                    <VscGraph className="text-green-400" size={28} />
                   </div>
                 </div>
               </div>
@@ -407,7 +415,7 @@ const Invest = () => {
                 const todaysEarning = calculateTodaysEarnings(investment.amount, investment.dailyReturn);
                 return (
               <div
-                key={investment.id}
+                key={investment.id || investment._id}
                 className="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -420,41 +428,41 @@ const Invest = () => {
                   </span>
                 </div>
 
-                <div className="grid md:grid-cols-5 gap-4 mb-4">
-                  <div className="bg-white/5 rounded-lg p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-4">
+                  <div className="bg-white/5 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscGraph className="text-purple-400" size={18} />
-                      <span className="text-white/60 text-sm">Daily Return</span>
+                      <span className="text-white/60 text-xs sm:text-sm">Daily Return</span>
                     </div>
-                    <p className="text-green-400 font-bold text-lg">{investment.dailyReturn}%</p>
+                    <p className="text-green-400 font-bold text-base sm:text-lg">{investment.dailyReturn}%</p>
                   </div>
-                  <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/20 rounded-lg p-4">
+                  <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/20 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscGraph className="text-green-400" size={18} />
-                      <span className="text-white/60 text-sm">Today's Earnings</span>
+                      <span className="text-white/60 text-xs sm:text-sm">Today's Earnings</span>
                     </div>
-                    <p className="text-green-400 font-bold text-lg">${todaysEarning.toFixed(2)}</p>
+                    <p className="text-green-400 font-bold text-base sm:text-lg">${todaysEarning.toFixed(2)}</p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-white/5 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscCalendar className="text-purple-400" size={18} />
-                      <span className="text-white/60 text-sm">Days Remaining</span>
+                      <span className="text-white/60 text-xs sm:text-sm">Days Remaining</span>
                     </div>
-                    <p className="text-white font-bold text-lg">{investment.daysRemaining}</p>
+                    <p className="text-white font-bold text-base sm:text-lg">{investment.daysRemaining}</p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-white/5 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscCheck className="text-purple-400" size={18} />
-                      <span className="text-white/60 text-sm">Total Earned</span>
+                      <span className="text-white/60 text-xs sm:text-sm">Total Earned</span>
                     </div>
-                    <p className="text-green-400 font-bold text-lg">${investment.totalEarned.toLocaleString()}</p>
+                    <p className="text-green-400 font-bold text-base sm:text-lg">${investment.totalEarned.toLocaleString()}</p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-white/5 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscCalendar className="text-purple-400" size={18} />
-                      <span className="text-white/60 text-sm">End Date</span>
+                      <span className="text-white/60 text-xs sm:text-sm">End Date</span>
                     </div>
-                    <p className="text-white font-bold text-lg">{new Date(investment.endDate).toLocaleDateString()}</p>
+                    <p className="text-white font-bold text-base sm:text-lg">{new Date(investment.endDate).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>

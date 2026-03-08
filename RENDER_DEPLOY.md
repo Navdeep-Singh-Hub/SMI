@@ -92,11 +92,11 @@ Your React app on Vercel must call this API URL in production:
 1. **Vercel** → your project → **Settings** → **Environment Variables**.
 2. Add:
    - **Name:** `REACT_APP_API_URL`
-   - **Value:** `https://smi-api.onrender.com` (or your actual Render URL)
+   - **Value:** `https://smi-api.onrender.com/api` (your Render URL **including `/api`**)
    - **Environment:** Production (and Preview if you want).
 3. **Redeploy** the Vercel app so the new variable is applied.
 
-The client already uses `process.env.REACT_APP_API_URL || 'http://localhost:5000/api'` for the base URL, so in production it will use the Render API.
+The client uses this as the API base (e.g. `.../api/deposit/create`). So the value must end with `/api`.
 
 ---
 

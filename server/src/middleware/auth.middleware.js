@@ -2,6 +2,24 @@ const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const User = require('../models/User');
 
+function generateReferralCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+async function ensureReferralCode(user) {
+  if (user.referralCode) return user.referralCode;
+  let code = generateReferralCode();
+  while (await User.findOne({ referralCode: code })) {
+    code = generateReferralCode();
+  }
+  user.referralCode = code;
+  await user.save();
+  return code;
+}
+
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || 'dev-13py8orx1jq30sww.us.auth0.com';
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE; // e.g. https://smi-api or your API identifier
 
@@ -55,8 +73,8 @@ const authMiddleware = async (req, res, next) => {
           wallet: 0,
           transactions: []
         });
+        await ensureReferralCode(user);
       }
-
       req.userId = user._id.toString();
       return next();
     }
@@ -81,3 +99,4 @@ async function ensureUniqueUsername(base) {
 }
 
 module.exports = authMiddleware;
+module.exports.ensureReferralCode = ensureReferralCode;

@@ -31,27 +31,27 @@ const Home = () => {
     </div>
 
     {/* Hero Section */}
-    <header id="home" className="relative z-10 min-h-screen flex items-center justify-center pt-20">
-      <div className="max-w-6xl mx-auto px-5 text-center">
+    <header id="home" className="relative z-10 min-h-screen flex items-center justify-center pt-16 sm:pt-20 pb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5 text-center">
         <ScrollFadeIn>
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 text-white bg-clip-text">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-white bg-clip-text">
             SMI Trading Platform
           </h1>
-          <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-8">
-            Automated trading across Forex, Indices, and Commodities. 
+          <p className="text-base sm:text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-6 sm:mb-8 px-1">
+            Automated trading across Forex, Indices, and Commodities.
             <span className="block mt-2">Easy, powerful, and accessible to everyone.</span>
           </p>
-          <div className="flex gap-4 justify-center mt-8">
-            <Link to="/register" className="px-8 py-4 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-lg">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mt-6 sm:mt-8">
+            <Link to="/register" className="w-full sm:w-auto min-h-[44px] flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base sm:text-lg">
               Get Started
             </Link>
-            <button onClick={() => navigate('/login')} className="px-8 py-4 rounded-lg bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/20 transition-colors text-lg">
+            <button onClick={() => navigate('/login')} className="w-full sm:w-auto min-h-[44px] flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 rounded-lg bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/20 transition-colors text-base sm:text-lg">
               Sign In
             </button>
           </div>
         </ScrollFadeIn>
         <ScrollFadeIn delay={0.3}>
-          <div className="mt-16 h-96">
+          <div className="mt-8 sm:mt-16 h-56 sm:h-72 md:h-96">
             <TradingScene />
           </div>
         </ScrollFadeIn>
@@ -59,37 +59,37 @@ const Home = () => {
     </header>
     
     {/* Features Section */}
-    <section id="features" className="relative z-10 py-24">
-      <div className="max-w-6xl mx-auto px-5">
+    <section id="features" className="relative z-10 py-12 sm:py-16 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-white text-center">Powerful Features</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-16 text-white text-center">Powerful Features</h2>
         </ScrollFadeIn>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           <ScrollScaleIn delay={0.1}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-48 mb-6 rounded-xl overflow-hidden">
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
                 <TradingScene />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-white">Automated Forex Trading</h3>
-              <p className="text-white/80">Advanced algorithms scan markets 24/7 and execute trades with precision timing.</p>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Automated Forex Trading</h3>
+              <p className="text-white/80 text-sm sm:text-base">Advanced algorithms scan markets 24/7 and execute trades with precision timing.</p>
             </div>
           </ScrollScaleIn>
           <ScrollScaleIn delay={0.2}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-48 mb-6 rounded-xl overflow-hidden">
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
                 <CoinsScene />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-white">Efficient Indices Trading</h3>
-              <p className="text-white/80">Optimized strategies for S&P 500, NASDAQ, UK100, and global indices.</p>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Efficient Indices Trading</h3>
+              <p className="text-white/80 text-sm sm:text-base">Optimized strategies for S&P 500, NASDAQ, UK100, and global indices.</p>
             </div>
           </ScrollScaleIn>
           <ScrollScaleIn delay={0.3}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-48 mb-6 rounded-xl overflow-hidden">
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
                 <TradingScene />
               </div>
-              <h3 className="text-2xl font-semibold mb-3 text-white">Commodities Trading</h3>
-              <p className="text-white/80">Trade gold, oil, and other commodities with intelligent risk management.</p>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Commodities Trading</h3>
+              <p className="text-white/80 text-sm sm:text-base">Trade gold, oil, and other commodities with intelligent risk management.</p>
             </div>
           </ScrollScaleIn>
         </div>
@@ -97,28 +97,28 @@ const Home = () => {
     </section>
     
     {/* Why Choose Section */}
-    <section id="why" className="relative z-10 py-24 bg-white/5">
-      <div className="max-w-6xl mx-auto px-5">
+    <section id="why" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-white text-center">Why Choose SMI?</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-16 text-white text-center">Why Choose SMI?</h2>
         </ScrollFadeIn>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           <ScrollSlideIn direction="left" delay={0.1}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-white">Expert Automation</h3>
-              <p className="text-white/80">Cutting-edge AI technology handles trading decisions, so you don't have to.</p>
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Expert Automation</h3>
+              <p className="text-white/80 text-sm sm:text-base">Cutting-edge AI technology handles trading decisions, so you don't have to.</p>
             </div>
           </ScrollSlideIn>
           <ScrollSlideIn direction="up" delay={0.2}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-white">Multi-Asset Support</h3>
-              <p className="text-white/80">Diversify your portfolio across Forex, Indices, Commodities, and more.</p>
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Multi-Asset Support</h3>
+              <p className="text-white/80 text-sm sm:text-base">Diversify your portfolio across Forex, Indices, Commodities, and more.</p>
             </div>
           </ScrollSlideIn>
           <ScrollSlideIn direction="right" delay={0.3}>
-            <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm">
-              <h3 className="text-2xl font-semibold mb-3 text-white">No Experience Needed</h3>
-              <p className="text-white/80">Perfect for beginners. Set your preferences and let SMI handle the rest.</p>
+            <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">No Experience Needed</h3>
+              <p className="text-white/80 text-sm sm:text-base">Perfect for beginners. Set your preferences and let SMI handle the rest.</p>
             </div>
           </ScrollSlideIn>
         </div>
@@ -126,53 +126,53 @@ const Home = () => {
     </section>
     
     {/* Testimonials */}
-    <section id="testimonials" className="relative z-10 py-24">
-      <div className="max-w-4xl mx-auto px-5 text-center">
+    <section id="testimonials" className="relative z-10 py-12 sm:py-16 md:py-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5 text-center">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-white">Trusted by Traders Worldwide</h2>
-          <blockquote className="text-2xl md:text-3xl mb-6 text-white/90 italic">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-white">Trusted by Traders Worldwide</h2>
+          <blockquote className="text-lg sm:text-2xl md:text-3xl mb-4 sm:mb-6 text-white/90 italic px-1">
             "SMI has completely transformed my trading. The automation is flawless, and I've seen consistent returns across multiple markets."
           </blockquote>
-          <p className="text-white/60 text-lg">— Sarah Chen, Professional Trader</p>
+          <p className="text-white/60 text-base sm:text-lg">— Sarah Chen, Professional Trader</p>
         </ScrollFadeIn>
       </div>
     </section>
     
     {/* FAQ Section */}
-    <section id="faq" className="relative z-10 py-24 bg-white/5">
-      <div className="max-w-4xl mx-auto px-5">
+    <section id="faq" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-white text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-16 text-white text-center">Frequently Asked Questions</h2>
         </ScrollFadeIn>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <ScrollFadeIn delay={0.1}>
-            <details className="bg-white/10 border border-white/6 rounded-xl p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <summary className="text-white font-semibold cursor-pointer text-lg">What is SMI, and how does it work?</summary>
-              <p className="text-white/80 mt-3">SMI is an automated trading bot that executes trades across multiple markets, including Forex, Indices, and Commodities. Using advanced algorithms, SMI scans market data, identifies trading opportunities, and executes trades based on your predefined settings and risk preferences.</p>
+            <details className="bg-white/10 border border-white/6 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
+              <summary className="text-white font-semibold cursor-pointer text-base sm:text-lg min-h-[44px] flex items-center">What is SMI, and how does it work?</summary>
+              <p className="text-white/80 mt-3 text-sm sm:text-base">SMI is an automated trading bot that executes trades across multiple markets, including Forex, Indices, and Commodities. Using advanced algorithms, SMI scans market data, identifies trading opportunities, and executes trades based on your predefined settings and risk preferences.</p>
             </details>
           </ScrollFadeIn>
           <ScrollFadeIn delay={0.2}>
             <details className="bg-white/10 border border-white/6 rounded-xl p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <summary className="text-white font-semibold cursor-pointer text-lg">How do I set up SMI for my trading needs?</summary>
-              <p className="text-white/80 mt-3">Setting up SMI is simple. After creating your account, you can customize your trading preferences by selecting your risk tolerance, asset allocation, and preferred trading strategies. SMI will then execute trades based on your chosen parameters.</p>
+              <summary className="text-white font-semibold cursor-pointer text-base sm:text-lg min-h-[44px] flex items-center">How do I set up SMI for my trading needs?</summary>
+              <p className="text-white/80 mt-3 text-sm sm:text-base">Setting up SMI is simple. After creating your account, you can customize your trading preferences by selecting your risk tolerance, asset allocation, and preferred trading strategies. SMI will then execute trades based on your chosen parameters.</p>
             </details>
           </ScrollFadeIn>
           <ScrollFadeIn delay={0.3}>
             <details className="bg-white/10 border border-white/6 rounded-xl p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <summary className="text-white font-semibold cursor-pointer text-lg">Is my money and data secure?</summary>
-              <p className="text-white/80 mt-3">Yes, SMI employs state-of-the-art encryption and security measures to protect your personal and financial information. Your funds are held with trusted brokers, and SMI ensures that all trading activities are securely managed.</p>
+              <summary className="text-white font-semibold cursor-pointer text-base sm:text-lg min-h-[44px] flex items-center">Is my money and data secure?</summary>
+              <p className="text-white/80 mt-3 text-sm sm:text-base">Yes, SMI employs state-of-the-art encryption and security measures to protect your personal and financial information. Your funds are held with trusted brokers, and SMI ensures that all trading activities are securely managed.</p>
             </details>
           </ScrollFadeIn>
           <ScrollFadeIn delay={0.4}>
             <details className="bg-white/10 border border-white/6 rounded-xl p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <summary className="text-white font-semibold cursor-pointer text-lg">Do I need trading experience?</summary>
-              <p className="text-white/80 mt-3">No, you don't need prior trading experience to use SMI. The platform is designed for both beginners and experienced traders. SMI takes care of the trading process, and users simply set their preferences, letting the bot handle the rest.</p>
+              <summary className="text-white font-semibold cursor-pointer text-base sm:text-lg min-h-[44px] flex items-center">Do I need trading experience?</summary>
+              <p className="text-white/80 mt-3 text-sm sm:text-base">No, you don't need prior trading experience to use SMI. The platform is designed for both beginners and experienced traders. SMI takes care of the trading process, and users simply set their preferences, letting the bot handle the rest.</p>
             </details>
           </ScrollFadeIn>
           <ScrollFadeIn delay={0.5}>
             <details className="bg-white/10 border border-white/6 rounded-xl p-6 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <summary className="text-white font-semibold cursor-pointer text-lg">Can I trade in multiple markets at the same time with SMI?</summary>
-              <p className="text-white/80 mt-3">Yes! SMI supports simultaneous trading across various markets, including Forex, Indices, and Commodities. You can set your preferences for each asset class, and SMI will handle trades in all markets for a diversified portfolio.</p>
+              <summary className="text-white font-semibold cursor-pointer text-base sm:text-lg min-h-[44px] flex items-center">Can I trade in multiple markets at the same time with SMI?</summary>
+              <p className="text-white/80 mt-3 text-sm sm:text-base">Yes! SMI supports simultaneous trading across various markets, including Forex, Indices, and Commodities. You can set your preferences for each asset class, and SMI will handle trades in all markets for a diversified portfolio.</p>
             </details>
           </ScrollFadeIn>
         </div>
@@ -180,10 +180,10 @@ const Home = () => {
     </section>
     
     {/* Contact Section */}
-    <section id="contact" className="relative z-10 py-24">
-      <div className="max-w-4xl mx-auto px-5">
+    <section id="contact" className="relative z-10 py-12 sm:py-16 md:py-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-white text-center">Get in Touch</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-white text-center">Get in Touch</h2>
         </ScrollFadeIn>
         <ScrollScaleIn delay={0.2}>
           <ContactForm />
@@ -192,22 +192,22 @@ const Home = () => {
     </section>
     
     {/* Privacy Section */}
-    <section id="privacy" className="relative z-10 py-24 bg-white/5">
-      <div className="max-w-4xl mx-auto px-5">
+    <section id="privacy" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-white text-center">Privacy Policy</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-white text-center">Privacy Policy</h2>
         </ScrollFadeIn>
         <ScrollFadeIn delay={0.2}>
-          <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm">
-            <p className="text-white/80 mb-4 text-lg">
+          <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm">
+            <p className="text-white/80 mb-4 text-base sm:text-lg">
               At SMI, we are committed to protecting your privacy and ensuring the security of your personal information. 
               This Privacy Policy explains how we collect, use, and safeguard your data when you use our trading platform.
             </p>
-            <p className="text-white/80 mb-4 text-lg">
+            <p className="text-white/80 mb-4 text-base sm:text-lg">
               We collect only the information necessary to provide our services, including your name, email address, and trading preferences. 
               Your financial data is encrypted and stored securely using industry-standard security measures.
             </p>
-            <p className="text-white/80 text-lg">
+            <p className="text-white/80 text-base sm:text-lg">
               We do not sell, trade, or share your personal information with third parties without your explicit consent, 
               except as required by law or to provide our services effectively.
             </p>
@@ -217,23 +217,23 @@ const Home = () => {
     </section>
 
     {/* Terms Section */}
-    <section id="terms" className="relative z-10 py-24">
-      <div className="max-w-4xl mx-auto px-5">
+    <section id="terms" className="relative z-10 py-12 sm:py-16 md:py-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold mb-12 text-white text-center">Terms of Service</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-white text-center">Terms of Service</h2>
         </ScrollFadeIn>
         <ScrollFadeIn delay={0.2}>
-          <div className="bg-white/10 border border-white/6 rounded-2xl p-8 backdrop-blur-sm">
-            <p className="text-white/80 mb-4 text-lg">
+          <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm">
+            <p className="text-white/80 mb-4 text-base sm:text-lg">
               By using SMI, you agree to these Terms of Service. Our automated trading platform is designed to assist with 
               trading decisions, but all trading involves risk. Past performance does not guarantee future results.
             </p>
-            <p className="text-white/80 mb-4 text-lg">
-              You are responsible for your trading decisions and any financial losses that may occur. SMI provides tools and 
+            <p className="text-white/80 mb-4 text-base sm:text-lg">
+              You are responsible for your trading decisions and any financial losses that may occur. SMI provides tools and
               information, but you retain full control over your trading activities and account management.
             </p>
-            <p className="text-white/80 text-lg">
-              We reserve the right to modify these terms at any time. Continued use of our services constitutes acceptance 
+            <p className="text-white/80 text-base sm:text-lg">
+              We reserve the right to modify these terms at any time. Continued use of our services constitutes acceptance
               of any changes to these terms.
             </p>
           </div>
@@ -243,9 +243,9 @@ const Home = () => {
 
     {/* Footer */}
     <footer className="relative z-10 border-t border-white/6 bg-black/50 backdrop-blur-sm">
-      <div className="max-w-6xl mx-auto px-5 h-20 flex items-center justify-between">
-        <span className="text-white/80">© {new Date().getFullYear()} SMI Trading Platform</span>
-        <button onClick={() => document.getElementById('privacy')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/80 hover:text-white transition-colors">
+      <div className="max-w-6xl mx-auto px-4 sm:px-5 py-4 sm:py-0 sm:h-20 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left">
+        <span className="text-white/80 text-sm sm:text-base">© {new Date().getFullYear()} SMI Trading Platform</span>
+        <button onClick={() => document.getElementById('privacy')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/80 hover:text-white transition-colors min-h-[44px] flex items-center justify-center px-4">
           Privacy
         </button>
       </div>
@@ -260,11 +260,14 @@ const Register = () => {
   const { loginWithRedirect } = useAuth0();
 
   const handleSignUp = () => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) try { localStorage.setItem('smi_referral_code', ref.trim()); } catch (e) { /* ignore */ }
     loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black px-4 py-6 sm:py-8">
       <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
         <LightRays
           raysOrigin="top-center"
@@ -279,18 +282,19 @@ const Register = () => {
           className="custom-rays"
         />
       </div>
-      <div className="w-full max-w-md bg-white/10 border border-white/6 rounded-2xl p-6 text-left relative z-10 backdrop-blur-sm">
-        <div className="font-bold text-2xl mb-2">SMI</div>
-        <h2 className="text-2xl font-bold mb-2 text-white">Let&apos;s Get Started</h2>
-        <p className="text-white/80 mb-6">Register a new membership with SMI.</p>
+      <div className="w-full max-w-md bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-6 text-left relative z-10 backdrop-blur-sm mx-auto">
+        <div className="font-bold text-xl sm:text-2xl mb-2">SMI</div>
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Let&apos;s Get Started</h2>
+        <p className="text-white/80 mb-5 sm:mb-6 text-sm sm:text-base">Register a new membership with SMI.</p>
         <div className="grid gap-4">
           <button
             type="button"
             onClick={handleSignUp}
-            className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity w-full"
+            className="min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity w-full"
           >
-            Sign Up with Auth0
+            Create Account
           </button>
+          <p className="text-white/50 text-xs mt-3 text-center">You’ll be taken to a secure page to create your account.</p>
           <div className="mt-6 text-center">
             <p className="text-white/80 text-sm">
               Already have an account?{' '}
@@ -317,7 +321,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black px-4 py-6 sm:py-8">
       <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
         <LightRays
           raysOrigin="top-center"
@@ -332,18 +336,19 @@ const Login = () => {
           className="custom-rays"
         />
       </div>
-      <div className="w-full max-w-md bg-white/10 border border-white/6 rounded-2xl p-6 text-left relative z-10 backdrop-blur-sm">
-        <div className="font-bold text-2xl mb-2">SMI</div>
-        <h2 className="text-2xl font-bold mb-2 text-white">Welcome!</h2>
-        <p className="text-white/80 mb-6">Login to continue your journey.</p>
+      <div className="w-full max-w-md bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-6 text-left relative z-10 backdrop-blur-sm mx-auto">
+        <div className="font-bold text-xl sm:text-2xl mb-2">SMI</div>
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Welcome!</h2>
+        <p className="text-white/80 mb-5 sm:mb-6 text-sm sm:text-base">Login to continue your journey.</p>
         <div className="grid gap-4">
           <button
             type="button"
             onClick={handleLogin}
-            className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity w-full"
+            className="min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity w-full"
           >
-            Log In with Auth0
+            Log In
           </button>
+          <p className="text-white/50 text-xs mt-3 text-center">You’ll be taken to a secure page to sign in.</p>
           <div className="mt-6 text-center">
             <p className="text-white/80 text-sm">
               Don&apos;t have an account?{' '}
@@ -408,19 +413,19 @@ const ContactForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white/10 border border-white/6 rounded-xl p-6 grid gap-4">
-      <label className="grid gap-2 text-white/80">
+    <form onSubmit={handleSubmit} className="bg-white/10 border border-white/6 rounded-xl p-4 sm:p-6 grid gap-4">
+      <label className="grid gap-2 text-white/80 text-sm sm:text-base">
         Full Name
         <input 
           name="name"
           value={formData.name}
           onChange={handleChange}
           placeholder="Full Name" 
-          className="p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
+          className="min-h-[44px] p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
           required 
         />
       </label>
-      <label className="grid gap-2 text-white/80">
+      <label className="grid gap-2 text-white/80 text-sm sm:text-base">
         Email
         <input 
           name="email"
@@ -428,42 +433,42 @@ const ContactForm = () => {
           value={formData.email}
           onChange={handleChange}
           placeholder="Email" 
-          className="p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
+          className="min-h-[44px] p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
           required 
         />
       </label>
-      <label className="grid gap-2 text-white/80">
+      <label className="grid gap-2 text-white/80 text-sm sm:text-base">
         Subject
         <input 
           name="subject"
           value={formData.subject}
           onChange={handleChange}
           placeholder="Subject" 
-          className="p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
+          className="min-h-[44px] p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
           required 
         />
       </label>
-      <label className="grid gap-2 text-white/80">
+      <label className="grid gap-2 text-white/80 text-sm sm:text-base">
         Message
         <textarea 
           name="message"
           value={formData.message}
           onChange={handleChange}
           placeholder="Message" 
-          className="p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60" 
+          className="p-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/60 min-h-[120px]" 
           rows="4"
           required
         ></textarea>
       </label>
       
       {submitStatus === 'success' && (
-        <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300">
+        <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm sm:text-base">
           Message sent successfully! We'll get back to you soon.
         </div>
       )}
       
       {submitStatus === 'error' && (
-        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300">
+        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm sm:text-base">
           Failed to send message. Please try again.
         </div>
       )}
@@ -471,7 +476,7 @@ const ContactForm = () => {
       <button 
         type="submit"
         disabled={isSubmitting}
-        className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        className="min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? 'Sending...' : 'Send Message'}
       </button>

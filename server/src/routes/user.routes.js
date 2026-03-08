@@ -12,30 +12,23 @@ router.get('/balance', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Calculate profit from transactions
-    // Profit = Total earnings (investments + commissions) - Total deposits
-    const transactions = await Transaction.find({ 
+    // Total deposits (what user has put in)
+    const depositTxns = await Transaction.find({
       user: req.userId,
+      type: 'deposit',
       status: 'completed'
-    }).select('type amount');
+    }).select('amount');
+    const totalDeposits = depositTxns.reduce((sum, t) => sum + t.amount, 0);
 
-    let totalDeposits = 0;
-    let totalEarnings = 0;
-
-    transactions.forEach(txn => {
-      if (txn.type === 'deposit') {
-        totalDeposits += txn.amount;
-      } else if (txn.type === 'investment' || txn.type === 'commission') {
-        totalEarnings += txn.amount;
-      }
-    });
-
-    const profit = totalEarnings - totalDeposits;
+    // Profit = (balance + wallet) - totalDeposits (net worth minus what they deposited)
+    const balance = user.balance ?? 0;
+    const wallet = user.wallet ?? 0;
+    const profit = (balance + wallet) - totalDeposits;
 
     res.json({
-      balance: user.balance || 0,
-      wallet: user.wallet || 0,
-      profit: profit || 0
+      balance,
+      wallet,
+      profit: Math.round(profit * 100) / 100
     });
   } catch (error) {
     console.error('Get balance error:', error);

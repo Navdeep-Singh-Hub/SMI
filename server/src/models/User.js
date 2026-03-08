@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: false }, // optional for Auth0 users
     balance: { type: Number, default: 0 },
     wallet: { type: Number, default: 0 },
-    transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }]
+    transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
+    referralCode: { type: String, unique: true, sparse: true }, // e.g. ABC12XYZ, for shareable link
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   { timestamps: true }
 );

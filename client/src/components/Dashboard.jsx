@@ -26,13 +26,39 @@ const Dashboard = () => {
   const [wallet, setWallet] = useState(0);
   const [profit, setProfit] = useState(0);
   const [sidebarHover, setSidebarHover] = useState(false);
+  const [initialPlanForInvest, setInitialPlanForInvest] = useState(null);
   const navigate = useNavigate();
   const { getAccessTokenSilently, logout: auth0Logout } = useAuth0();
 
   useEffect(() => {
     fetchUserBalance();
+    const handler = () => fetchUserBalance();
+    window.addEventListener('balanceUpdated', handler);
+    return () => window.removeEventListener('balanceUpdated', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Attach referral code from localStorage (saved when user came from /register?ref=CODE)
+  useEffect(() => {
+    let mounted = true;
+    const attachReferrer = async () => {
+      try {
+        const code = localStorage.getItem('smi_referral_code');
+        if (!code || !code.trim()) return;
+        const token = await getAccessTokenSilently();
+        const res = await fetch(`${API_BASE}/affiliate/attach-referrer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ referralCode: code.trim() })
+        });
+        if (res.ok && mounted) localStorage.removeItem('smi_referral_code');
+      } catch (e) {
+        console.error('Attach referrer error:', e);
+      }
+    };
+    attachReferrer();
+    return () => { mounted = false; };
+  }, [getAccessTokenSilently]);
 
   const fetchUserBalance = async () => {
     try {
@@ -77,9 +103,9 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeMenu) {
       case 'plans':
-        return <Plans />;
+        return <Plans onInvestPlan={(plan) => { setInitialPlanForInvest(plan); setActiveMenu('invest'); }} />;
       case 'invest':
-        return <Invest />;
+        return <Invest initialPlanForInvest={initialPlanForInvest} onClearInitialPlan={() => setInitialPlanForInvest(null)} />;
       case 'withdraw':
         return <Withdraw />;
       case 'deposit':
@@ -94,10 +120,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex">
-      {/* Left Sidebar - Collapsible */}
+    <div className="min-h-screen bg-black flex flex-col md:flex-row">
+      {/* Left Sidebar - Desktop only; mobile uses bottom nav */}
       <aside
-        className={`bg-white/10 border-r border-white/20 flex flex-col transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex bg-white/10 border-r border-white/20 flex-col transition-all duration-300 ease-in-out ${
           sidebarHover ? 'w-64' : 'w-20'
         }`}
         onMouseEnter={() => setSidebarHover(true)}
@@ -150,7 +176,7 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 overflow-y-auto relative pb-20 md:pb-0">
         {/* FloatingLines Background */}
         <div className="absolute inset-0 z-0">
           <FloatingLines 
@@ -164,31 +190,58 @@ const Dashboard = () => {
           />
         </div>
         
-        {/* Balance Display - Top Right Corner - Three Sections */}
-        <div className="absolute top-4 right-4 z-10 flex gap-3">
+        {/* Balance Display - Stack on mobile, top-right on desktop */}
+        <div className="relative md:absolute top-0 md:top-4 right-0 md:right-4 z-10 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 p-4 md:p-0">
           {/* Total Wallet */}
-          <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-4 backdrop-blur-sm shadow-lg min-w-[140px]">
-            <p className="text-white/60 text-xs mb-1">Total Wallet</p>
-            <p className="text-2xl font-bold text-green-400">${wallet.toFixed(2)}</p>
+          <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
+            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Total Wallet</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-400 truncate">${wallet.toFixed(2)}</p>
           </div>
-          
           {/* Balance */}
-          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-lg p-4 backdrop-blur-sm shadow-lg min-w-[140px]">
-            <p className="text-white/60 text-xs mb-1">Balance</p>
-            <p className="text-2xl font-bold text-blue-400">${balance.toFixed(2)}</p>
+          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
+            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Balance</p>
+            <p className="text-lg sm:text-2xl font-bold text-blue-400 truncate">${balance.toFixed(2)}</p>
           </div>
-          
           {/* Profit */}
-          <div className={`bg-gradient-to-r ${profit >= 0 ? 'from-green-500/20 to-green-600/20 border-green-500/30' : 'from-red-500/20 to-red-600/20 border-red-500/30'} border rounded-lg p-4 backdrop-blur-sm shadow-lg min-w-[140px]`}>
-            <p className="text-white/60 text-xs mb-1">Profit</p>
-            <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>${profit.toFixed(2)}</p>
+          <div className={`bg-gradient-to-r ${profit >= 0 ? 'from-green-500/20 to-green-600/20 border-green-500/30' : 'from-red-500/20 to-red-600/20 border-red-500/30'} border rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]`}>
+            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Profit</p>
+            <p className={`text-lg sm:text-2xl font-bold truncate ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>${profit.toFixed(2)}</p>
           </div>
         </div>
         
-        <div className="p-8 relative z-10">
+        <div className="p-4 sm:p-6 md:p-8 relative z-10">
           {renderContent()}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/90 border-t border-white/20 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around h-14 px-2">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveMenu(item.id)}
+              className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all flex-1 max-w-[80px] ${
+                activeMenu === item.id
+                  ? 'bg-purple-600/80 text-white'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              }`}
+              aria-label={item.label}
+            >
+              {item.icon}
+              <span className="text-[10px] font-medium truncate w-full text-center">{item.label}</span>
+            </button>
+          ))}
+          <button
+            onClick={handleLogout}
+            className="min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all flex-1 max-w-[80px]"
+            aria-label="Logout"
+          >
+            <VscSignOut size={20} />
+            <span className="text-[10px] font-medium">Logout</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

@@ -41,16 +41,16 @@ router.post('/create', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Validate plan amounts (basic validation - you may want to fetch from a plans collection)
-    const planLimits = {
-      'Demo Plan': { min: 50, max: 499 },
-      'Bronze': { min: 500, max: 1999 },
-      'Silver': { min: 2000, max: 9999 },
-      'Gold': { min: 10000, max: 49999 },
-      'Platinum': { min: 50000, max: 999999 }
+    // Validate plan amounts and get plan terms
+    const planConfig = {
+      'Demo Plan': { min: 50, max: 499, dailyReturn: 2.5, durationDays: 7 },
+      'Bronze': { min: 500, max: 1999, dailyReturn: 3.0, durationDays: 14 },
+      'Silver': { min: 2000, max: 9999, dailyReturn: 3.5, durationDays: 21 },
+      'Gold': { min: 10000, max: 49999, dailyReturn: 4.0, durationDays: 30 },
+      'Platinum': { min: 50000, max: 999999, dailyReturn: 5.0, durationDays: 30 }
     };
 
-    const plan = planLimits[planName];
+    const plan = planConfig[planName];
     if (!plan) {
       return res.status(400).json({ message: 'Invalid plan name' });
     }
@@ -68,13 +68,15 @@ router.post('/create', authMiddleware, async (req, res) => {
       });
     }
 
-    // Create investment transaction
+    // Create investment transaction with plan terms
     const transaction = await Transaction.create({
       user: req.userId,
       type: 'investment',
       amount: investmentAmount,
       planName: planName,
-      status: 'completed', // Auto-complete investment (or set to 'pending' if you want manual approval)
+      planDailyReturn: plan.dailyReturn,
+      planDurationDays: plan.durationDays,
+      status: 'completed',
       description: `Investment in ${planName} plan`
     });
 
@@ -85,6 +87,26 @@ router.post('/create', authMiddleware, async (req, res) => {
     // Add transaction to user's transactions array
     user.transactions.push(transaction._id);
     await user.save();
+
+    // Commission for referrer (10% of investment)
+    const referrerId = user.referredBy;
+    if (referrerId) {
+      const commissionRate = 0.1;
+      const commissionAmount = Math.round(investmentAmount * commissionRate * 100) / 100;
+      const commissionTxn = await Transaction.create({
+        user: referrerId,
+        type: 'commission',
+        amount: commissionAmount,
+        status: 'completed',
+        description: `Commission from ${planName} investment (${user.name || user.email})`
+      });
+      const referrer = await User.findById(referrerId);
+      if (referrer) {
+        referrer.wallet = (referrer.wallet || 0) + commissionAmount;
+        referrer.transactions.push(commissionTxn._id);
+        await referrer.save();
+      }
+    }
 
     res.status(201).json({
       message: 'Investment created successfully',
@@ -121,7 +143,7 @@ router.get('/check-demo', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/invest/active - Get user's active investments
+// GET /api/invest/active - Get user's active investments with computed earnings
 router.get('/active', authMiddleware, async (req, res) => {
   try {
     const investments = await Transaction.find({
@@ -130,14 +152,32 @@ router.get('/active', authMiddleware, async (req, res) => {
       status: { $in: ['pending', 'completed'] }
     }).sort({ createdAt: -1 });
 
-    res.json({
-      investments: investments.map(inv => ({
+    const now = new Date();
+    const investmentsWithEarnings = investments.map(inv => {
+      const startDate = new Date(inv.createdAt);
+      const durationDays = inv.planDurationDays || 7;
+      const dailyReturn = inv.planDailyReturn || 2.5;
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + durationDays);
+      const daysElapsed = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
+      const daysRemaining = Math.max(0, durationDays - daysElapsed);
+      const dailyEarning = (inv.amount * dailyReturn) / 100;
+      const totalEarned = dailyEarning * Math.min(daysElapsed, durationDays);
+      return {
         id: inv._id,
-        planName: inv.planName,
+        plan: inv.planName,
         amount: inv.amount,
-        status: inv.status,
-        createdAt: inv.createdAt
-      }))
+        dailyReturn,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        daysRemaining,
+        totalEarned: Math.round(totalEarned * 100) / 100,
+        status: inv.status
+      };
+    });
+
+    res.json({
+      investments: investmentsWithEarnings
     });
   } catch (error) {
     console.error('Get active investments error:', error);

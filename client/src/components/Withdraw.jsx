@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { VscArrowUp, VscCreditCard, VscHistory, VscCheck } from 'react-icons/vsc';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const Withdraw = () => {
+  const { getAccessTokenSilently } = useAuth0();
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('crypto');
   const [selectedCrypto, setSelectedCrypto] = useState('btc');
@@ -12,9 +16,12 @@ const Withdraw = () => {
     swiftCode: '',
     cryptoAddress: ''
   });
-  const [activeTab, setActiveTab] = useState('withdraw'); // 'withdraw' or 'history'
+  const [activeTab, setActiveTab] = useState('withdraw');
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
-  // Popular cryptocurrencies for withdrawal
   const cryptoCurrencies = [
     { code: 'btc', name: 'Bitcoin', icon: '₿', network: 'Bitcoin' },
     { code: 'eth', name: 'Ethereum', icon: 'Ξ', network: 'Ethereum' },
@@ -26,36 +33,47 @@ const Withdraw = () => {
     { code: 'doge', name: 'Dogecoin', icon: 'Ð', network: 'Dogecoin' },
   ];
 
-  const availableBalance = 15230.50;
-  const pendingWithdrawals = 500.00;
+  const pendingWithdrawals = 0; // TODO: from API when withdrawal requests exist
   const minWithdraw = 50;
+  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
 
-  const withdrawalHistory = [
-    {
-      id: 1,
-      amount: 1000,
-      method: 'Bank Transfer',
-      status: 'completed',
-      date: '2024-01-15',
-      transactionId: 'TXN-2024-001'
-    },
-    {
-      id: 2,
-      amount: 500,
-      method: 'Crypto',
-      status: 'pending',
-      date: '2024-01-20',
-      transactionId: 'TXN-2024-002'
-    },
-    {
-      id: 3,
-      amount: 2500,
-      method: 'Bank Transfer',
-      status: 'completed',
-      date: '2024-01-10',
-      transactionId: 'TXN-2024-003'
+  const fetchWithdrawalHistory = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const res = await fetch(`${API_BASE}/withdraw/history`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setWithdrawalHistory(data.withdrawals || []);
+      }
+    } catch (e) {
+      console.error('Fetch withdrawal history error:', e);
     }
-  ];
+  };
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const token = await getAccessTokenSilently();
+        const res = await fetch(`${API_BASE}/user/balance`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableBalance(data.balance ?? 0);
+        }
+      } catch (e) {
+        console.error('Fetch balance error:', e);
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+    fetchBalance();
+    const handler = () => fetchBalance();
+    window.addEventListener('balanceUpdated', handler);
+    return () => window.removeEventListener('balanceUpdated', handler);
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    if (activeTab === 'history') fetchWithdrawalHistory();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
@@ -64,79 +82,102 @@ const Withdraw = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     const amount = parseFloat(withdrawAmount);
-    
+
     if (amount < minWithdraw) {
-      alert(`Minimum withdrawal amount is $${minWithdraw}`);
+      setSubmitError(`Minimum withdrawal amount is $${minWithdraw}`);
       return;
     }
-    
+
     if (amount > availableBalance) {
-      alert('Insufficient balance');
+      setSubmitError('Insufficient balance');
       return;
     }
 
     if (paymentMethod === 'bank') {
-      alert('Bank transfer is coming soon. Please use cryptocurrency withdrawal.');
+      setSubmitError('Bank transfer is coming soon. Please use cryptocurrency withdrawal.');
       return;
     }
 
-    if (paymentMethod === 'crypto' && !accountDetails.cryptoAddress) {
-      alert('Please enter your crypto wallet address');
+    if (paymentMethod === 'crypto' && !accountDetails.cryptoAddress.trim()) {
+      setSubmitError('Please enter your crypto wallet address');
       return;
     }
 
-    // Handle withdrawal submission
-    alert(`Withdrawal request of $${amount} submitted successfully!`);
-    setWithdrawAmount('');
-    setAccountDetails({
-      accountNumber: '',
-      accountName: '',
-      bankName: '',
-      swiftCode: '',
-      cryptoAddress: ''
-    });
+    setSubmitting(true);
+    try {
+      const token = await getAccessTokenSilently();
+      const res = await fetch(`${API_BASE}/withdraw/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          amount,
+          payMethod: paymentMethod,
+          cryptoCurrency: selectedCrypto,
+          cryptoAddress: accountDetails.cryptoAddress.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWithdrawAmount('');
+        setAccountDetails((prev) => ({ ...prev, cryptoAddress: '' }));
+        window.dispatchEvent(new Event('balanceUpdated'));
+        fetchWithdrawalHistory();
+        setActiveTab('history');
+        alert(`Withdrawal request of $${amount.toFixed(2)} submitted successfully.`);
+      } else {
+        setSubmitError(data.message || 'Withdrawal request failed.');
+      }
+    } catch (err) {
+      console.error('Withdraw submit error:', err);
+      setSubmitError('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Withdraw</h2>
-        <p className="text-white/60">Withdraw your earnings to your preferred payment method</p>
+    <div className="max-w-6xl mx-auto px-1 sm:px-0">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Withdraw</h2>
+        <p className="text-white/60 text-sm sm:text-base">Withdraw your earnings to your preferred payment method</p>
       </div>
 
       {/* Balance Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscCreditCard className="text-green-400" size={24} />
             <span className="text-white/60 text-sm">Available Balance</span>
           </div>
-          <p className="text-3xl font-bold text-white">${availableBalance.toLocaleString()}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white truncate">
+            {loadingBalance ? '...' : `$${Number(availableBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          </p>
         </div>
-        <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscArrowUp className="text-yellow-400" size={24} />
             <span className="text-white/60 text-sm">Pending Withdrawals</span>
           </div>
-          <p className="text-3xl font-bold text-white">${pendingWithdrawals.toLocaleString()}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white truncate">${pendingWithdrawals.toLocaleString()}</p>
         </div>
-        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscCheck className="text-purple-400" size={24} />
             <span className="text-white/60 text-sm">Minimum Withdrawal</span>
           </div>
-          <p className="text-3xl font-bold text-white">${minWithdraw}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white">${minWithdraw}</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-white/20">
+      <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-white/20 overflow-x-auto">
         <button
           onClick={() => setActiveTab('withdraw')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'withdraw'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
@@ -146,7 +187,7 @@ const Withdraw = () => {
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'history'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
@@ -157,7 +198,7 @@ const Withdraw = () => {
       </div>
 
       {activeTab === 'withdraw' && (
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-purple-600/20 rounded-lg">
               <VscArrowUp className="text-purple-400" size={24} />
@@ -168,6 +209,11 @@ const Withdraw = () => {
             </div>
           </div>
 
+          {submitError && (
+            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-300 text-sm">
+              {submitError}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="withdrawAmount" className="block text-white/80 mb-2 font-medium">
@@ -284,13 +330,13 @@ const Withdraw = () => {
               <div className="space-y-4 p-4 bg-white/5 rounded-lg">
                 <div>
                   <label className="block text-white/80 mb-3 font-medium">Select Cryptocurrency</label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                     {cryptoCurrencies.map((crypto) => (
                       <button
                         key={crypto.code}
                         type="button"
                         onClick={() => setSelectedCrypto(crypto.code)}
-                        className={`p-3 rounded-lg border-2 transition-all ${
+                        className={`min-h-[44px] p-3 rounded-lg border-2 transition-all ${
                           selectedCrypto === crypto.code
                             ? 'border-purple-500 bg-purple-500/20'
                             : 'border-white/20 bg-white/5 hover:border-white/40'
@@ -328,10 +374,10 @@ const Withdraw = () => {
 
             <button
               type="submit"
-              disabled={!withdrawAmount || parseFloat(withdrawAmount) < minWithdraw}
-              className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitting || !withdrawAmount || parseFloat(withdrawAmount) < minWithdraw}
+              className="w-full min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit Withdrawal Request
+              {submitting ? 'Submitting...' : 'Submit Withdrawal Request'}
             </button>
           </form>
         </div>
@@ -339,7 +385,7 @@ const Withdraw = () => {
 
       {activeTab === 'history' && (
         <div className="space-y-4">
-          {withdrawalHistory.length === 0 ? (
+          {!withdrawalHistory || withdrawalHistory.length === 0 ? (
             <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
               <VscHistory className="text-white/40 mx-auto mb-4" size={48} />
               <p className="text-white/60">No withdrawal history yet</p>
@@ -348,12 +394,12 @@ const Withdraw = () => {
             withdrawalHistory.map((withdrawal) => (
               <div
                 key={withdrawal.id}
-                className="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm"
+                className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 backdrop-blur-sm"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-white mb-1">
-                      ${withdrawal.amount.toLocaleString()}
+                      ${Number(withdrawal.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </h3>
                     <p className="text-white/60 text-sm">{withdrawal.method}</p>
                     <p className="text-white/40 text-xs mt-1">ID: {withdrawal.transactionId}</p>
@@ -367,7 +413,7 @@ const Withdraw = () => {
                         : 'bg-red-500/20 text-red-400'
                     }`}
                   >
-                    {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    {withdrawal.status ? withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1) : 'Pending'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-white/60 text-sm">

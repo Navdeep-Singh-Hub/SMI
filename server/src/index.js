@@ -26,6 +26,9 @@ app.use('/api/contact', require('./routes/contact.routes'));
 app.use('/api/deposit', require('./routes/deposit.routes'));
 app.use('/api/user', require('./routes/user.routes'));
 app.use('/api/invest', require('./routes/invest.routes'));
+app.use('/api/withdraw', require('./routes/withdraw.routes'));
+app.use('/api/affiliate', require('./routes/affiliate.routes'));
+app.use('/api/downline', require('./routes/downline.routes'));
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/SMI';

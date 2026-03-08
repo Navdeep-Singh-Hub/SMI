@@ -1,32 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { VscAccount, VscCopy, VscGraph, VscPersonAdd, VscCheck } from 'react-icons/vsc';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const AffiliateProgram = () => {
+  const { getAccessTokenSilently } = useAuth0();
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'referrals', 'commissions'
-
-  const referralLink = 'https://smi-trading.com/register?ref=USER12345';
-  const referralCode = 'USER12345';
-
-  const stats = {
-    totalReferrals: 42,
-    activeReferrals: 28,
-    totalCommissions: 15230.50,
-    pendingCommissions: 1250.00,
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalReferrals: 0,
+    activeReferrals: 0,
+    totalCommissions: 0,
+    pendingCommissions: 0,
     commissionRate: 10
-  };
+  });
+  const [recentReferrals, setRecentReferrals] = useState([]);
+  const [commissionHistory, setCommissionHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [referralLink, setReferralLink] = useState(`${typeof window !== 'undefined' ? window.location.origin : ''}/register`);
+  const [referralCode, setReferralCode] = useState('—');
 
-  const recentReferrals = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', date: '2024-01-15', status: 'active', invested: 5000 },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', date: '2024-01-18', status: 'active', invested: 10000 },
-    { id: 3, name: 'Bob Wilson', email: 'bob@example.com', date: '2024-01-20', status: 'pending', invested: 0 },
-  ];
-
-  const commissionHistory = [
-    { id: 1, referral: 'John Doe', amount: 500, type: 'Investment Commission', date: '2024-01-15', status: 'paid' },
-    { id: 2, referral: 'Jane Smith', amount: 1000, type: 'Investment Commission', date: '2024-01-18', status: 'paid' },
-    { id: 3, referral: 'John Doe', amount: 250, type: 'Investment Commission', date: '2024-01-20', status: 'pending' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await getAccessTokenSilently();
+        const [meRes, statsRes, refRes, commRes] = await Promise.all([
+          fetch(`${API_BASE}/affiliate/me`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE}/affiliate/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE}/affiliate/referrals`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE}/affiliate/commissions`, { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        if (meRes.ok) {
+          const me = await meRes.json();
+          if (me.referralLink) setReferralLink(me.referralLink);
+          if (me.referralCode) setReferralCode(me.referralCode);
+        }
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (refRes.ok) { const d = await refRes.json(); setRecentReferrals(d.referrals || []); }
+        if (commRes.ok) { const d = await commRes.json(); setCommissionHistory(d.commissions || []); }
+      } catch (e) {
+        console.error('Affiliate fetch error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [getAccessTokenSilently]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -41,46 +61,46 @@ const AffiliateProgram = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Affiliate Program</h2>
-        <p className="text-white/60">Earn commissions by referring others to SMI Trading Platform</p>
+    <div className="max-w-6xl mx-auto px-1 sm:px-0">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Affiliate Program</h2>
+        <p className="text-white/60 text-sm sm:text-base">Earn commissions by referring others to SMI Trading Platform</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-2xl p-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscPersonAdd className="text-blue-400" size={24} />
-            <span className="text-white/60 text-sm">Total Referrals</span>
+            <span className="text-white/60 text-xs sm:text-sm">Total Referrals</span>
           </div>
-          <p className="text-3xl font-bold text-white">{stats.totalReferrals}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white">{stats.totalReferrals}</p>
         </div>
-        <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscCheck className="text-green-400" size={24} />
-            <span className="text-white/60 text-sm">Active Referrals</span>
+            <span className="text-white/60 text-xs sm:text-sm">Active Referrals</span>
           </div>
-          <p className="text-3xl font-bold text-white">{stats.activeReferrals}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white">{stats.activeReferrals}</p>
         </div>
-        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscGraph className="text-purple-400" size={24} />
-            <span className="text-white/60 text-sm">Total Commissions</span>
+            <span className="text-white/60 text-xs sm:text-sm">Total Commissions</span>
           </div>
-          <p className="text-3xl font-bold text-white">${stats.totalCommissions.toLocaleString()}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white truncate">${Number(stats.totalCommissions).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
-        <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <VscAccount className="text-yellow-400" size={24} />
-            <span className="text-white/60 text-sm">Commission Rate</span>
+            <span className="text-white/60 text-xs sm:text-sm">Commission Rate</span>
           </div>
-          <p className="text-3xl font-bold text-white">{stats.commissionRate}%</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white">{stats.commissionRate}%</p>
         </div>
       </div>
 
       {/* Referral Link Section */}
-      <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm mb-8">
+      <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm mb-6 sm:mb-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-purple-600/20 rounded-lg">
             <VscAccount className="text-purple-400" size={24} />
@@ -94,16 +114,16 @@ const AffiliateProgram = () => {
         <div className="space-y-4">
           <div>
             <label className="block text-white/80 mb-2 text-sm">Referral Link</label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={referralLink}
                 readOnly
-                className="flex-1 px-4 py-3 rounded-lg border border-white/30 bg-white/10 text-white text-sm"
+                className="flex-1 min-h-[44px] px-4 py-3 rounded-lg border border-white/30 bg-white/10 text-white text-xs sm:text-sm"
               />
               <button
                 onClick={handleCopyLink}
-                className="px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors flex items-center gap-2"
+                className="min-h-[44px] px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <VscCopy size={18} />
                 {copied ? 'Copied!' : 'Copy'}
@@ -113,16 +133,16 @@ const AffiliateProgram = () => {
 
           <div>
             <label className="block text-white/80 mb-2 text-sm">Referral Code</label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={referralCode}
                 readOnly
-                className="flex-1 px-4 py-3 rounded-lg border border-white/30 bg-white/10 text-white text-sm font-mono"
+                className="flex-1 min-h-[44px] px-4 py-3 rounded-lg border border-white/30 bg-white/10 text-white text-sm font-mono"
               />
               <button
                 onClick={handleCopyCode}
-                className="px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+                className="min-h-[44px] px-6 py-3 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
               >
                 <VscCopy size={18} />
                 {copied ? 'Copied!' : 'Copy'}
@@ -143,10 +163,10 @@ const AffiliateProgram = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-white/20">
+      <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-6 border-b border-white/20 overflow-x-auto">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'overview'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
@@ -156,28 +176,28 @@ const AffiliateProgram = () => {
         </button>
         <button
           onClick={() => setActiveTab('referrals')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'referrals'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
           }`}
         >
-          My Referrals ({recentReferrals.length})
+          Referrals ({recentReferrals.length})
         </button>
         <button
           onClick={() => setActiveTab('commissions')}
-          className={`px-6 py-3 font-medium transition-colors ${
+          className={`min-h-[44px] px-4 sm:px-6 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'commissions'
               ? 'text-white border-b-2 border-purple-500'
               : 'text-white/60 hover:text-white'
           }`}
         >
-          Commission History
+          Commissions
         </button>
       </div>
 
       {activeTab === 'overview' && (
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm">
           <h3 className="text-xl font-semibold text-white mb-6">Commission Structure</h3>
           <div className="space-y-4">
             <div className="p-4 bg-white/5 rounded-lg">
@@ -207,10 +227,14 @@ const AffiliateProgram = () => {
 
       {activeTab === 'referrals' && (
         <div className="space-y-4">
-          {recentReferrals.length === 0 ? (
+          {loading ? (
             <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+              <p className="text-white/60">Loading...</p>
+            </div>
+          ) : recentReferrals.length === 0 ? (
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-6 sm:p-12 text-center">
               <VscPersonAdd className="text-white/40 mx-auto mb-4" size={48} />
-              <p className="text-white/60">No referrals yet</p>
+              <p className="text-white/60 text-sm sm:text-base">No referrals yet</p>
             </div>
           ) : (
             recentReferrals.map((referral) => (
@@ -254,8 +278,12 @@ const AffiliateProgram = () => {
 
       {activeTab === 'commissions' && (
         <div className="space-y-4">
-          {commissionHistory.length === 0 ? (
+          {loading ? (
             <div className="bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+              <p className="text-white/60">Loading...</p>
+            </div>
+          ) : commissionHistory.length === 0 ? (
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-6 sm:p-12 text-center">
               <VscGraph className="text-white/40 mx-auto mb-4" size={48} />
               <p className="text-white/60">No commission history yet</p>
             </div>

@@ -4,7 +4,7 @@ import { VscCalendar, VscCheck, VscStarFull } from 'react-icons/vsc';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const Plans = () => {
+const Plans = ({ onInvestPlan }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [hasPurchasedDemoPlan, setHasPurchasedDemoPlan] = useState(false);
 
@@ -140,22 +140,22 @@ const Plans = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-1 sm:px-0">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Investment Plans</h2>
-        <p className="text-white/60">Choose the perfect plan that matches your investment goals</p>
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Investment Plans</h2>
+        <p className="text-white/60 text-sm sm:text-base">Choose the perfect plan that matches your investment goals</p>
       </div>
 
       {/* Plans Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {investmentPlans.map((plan) => {
           const example = calculateExample(plan);
           const isDemoPlanPurchased = plan.name === 'Demo Plan' && hasPurchasedDemoPlan;
           return (
             <div
               key={plan.id}
-              className={`bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm transition-all ${
+              className={`bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 backdrop-blur-sm transition-all ${
                 isDemoPlanPurchased 
                   ? 'opacity-60' 
                   : 'hover:bg-white/15 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20'
@@ -235,19 +235,33 @@ const Plans = () => {
                   ))}
                 </ul>
               </div>
+
+              {/* Invest in this plan - same shape as Invest's plan (id, name, minAmount, maxAmount, dailyReturn, duration, totalReturn, color) */}
+              {onInvestPlan && (
+                <button
+                  type="button"
+                  onClick={() => onInvestPlan({ id: plan.id, name: plan.name, minAmount: plan.minAmount, maxAmount: plan.maxAmount, dailyReturn: plan.dailyReturn, duration: plan.duration, totalReturn: plan.totalReturn, color: plan.color })}
+                  disabled={isDemoPlanPurchased}
+                  className={`w-full mt-4 min-h-[44px] rounded-lg font-semibold transition-opacity ${
+                    isDemoPlanPurchased ? 'opacity-50 cursor-not-allowed bg-white/10 text-white/60' : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:opacity-90'
+                  }`}
+                >
+                  {isDemoPlanPurchased ? 'Already Purchased' : 'Invest in this plan'}
+                </button>
+              )}
             </div>
           );
         })}
       </div>
 
       {/* Additional Information */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-purple-600/20 rounded-lg">
               <VscCalendar className="text-purple-400" size={24} />
             </div>
-            <h3 className="text-xl font-semibold text-white">How It Works</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-white">How It Works</h3>
           </div>
           <ol className="space-y-3 text-white/80 text-sm">
             <li className="flex gap-3">
@@ -269,12 +283,12 @@ const Plans = () => {
           </ol>
         </div>
 
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-green-600/20 rounded-lg">
               <VscCheck className="text-green-400" size={24} />
             </div>
-            <h3 className="text-xl font-semibold text-white">Benefits</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Benefits</h3>
           </div>
           <ul className="space-y-3 text-white/80 text-sm">
             <li className="flex items-start gap-3">

@@ -98,6 +98,7 @@ const Deposit = () => {
           fetchBalance();
           fetchTransactions();
           setSuccess('Payment confirmed! Your balance has been updated.');
+          window.dispatchEvent(new Event('balanceUpdated'));
         }
 
         // If payment failed, stop polling
@@ -256,16 +257,16 @@ const Deposit = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-3xl font-bold text-white">Deposit Money</h2>
-          <div className="text-right">
+    <div className="max-w-4xl mx-auto px-1 sm:px-0">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">Deposit Money</h2>
+          <div className="text-left sm:text-right">
             <p className="text-white/60 text-sm">Current Balance</p>
-            <p className="text-2xl font-bold text-green-400">${balance.toFixed(2)}</p>
+            <p className="text-xl sm:text-2xl font-bold text-green-400">${balance.toFixed(2)}</p>
           </div>
         </div>
-        <p className="text-white/60">Add funds to your account via cryptocurrency payment</p>
+        <p className="text-white/60 text-sm sm:text-base">Add funds to your account via cryptocurrency payment</p>
       </div>
 
       {/* Error/Success Messages */}
@@ -282,7 +283,7 @@ const Deposit = () => {
 
       {/* Deposit Form */}
       {!currentTransaction && (
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm mb-6">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm mb-4 sm:mb-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-purple-600/20 rounded-lg">
             <VscArrowDown className="text-purple-400" size={24} />
@@ -316,13 +317,13 @@ const Deposit = () => {
             <label className="block text-white/80 mb-3 font-medium">
               Select Cryptocurrency
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
               {popularCurrencies.map((currency) => (
                 <button
                   key={currency.code}
                   type="button"
                   onClick={() => setSelectedCurrency(currency.code)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`min-h-[44px] p-3 sm:p-4 rounded-lg border-2 transition-all ${
                     selectedCurrency === currency.code
                       ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/20'
                       : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
@@ -346,7 +347,7 @@ const Deposit = () => {
           <button
             type="submit"
               disabled={!amount || parseFloat(amount) <= 0 || isLoading}
-            className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+            className="w-full min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
           >
               {isLoading ? 'Processing...' : 'Pay Now'}
           </button>
@@ -356,7 +357,7 @@ const Deposit = () => {
 
       {/* NOWPayments Payment Display */}
       {currentTransaction && (
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm mb-6">
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm mb-4 sm:mb-6">
             <div className="text-center">
               <h4 className="text-xl font-semibold text-white mb-4">
               Complete Your Payment
@@ -383,11 +384,11 @@ const Deposit = () => {
 
             {/* QR Code */}
             {currentTransaction.qrCode && (
-              <div className="bg-white rounded-lg p-6 inline-block mb-4 shadow-lg">
+              <div className="bg-white rounded-lg p-3 sm:p-6 inline-block mb-4 shadow-lg">
                   <img
                   src={currentTransaction.qrCode}
                   alt="Payment QR Code"
-                    className="w-64 h-64 object-contain"
+                    className="w-48 h-48 sm:w-64 sm:h-64 object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       const fallback = e.target.nextElementSibling;
@@ -396,7 +397,7 @@ const Deposit = () => {
                   />
                   <div 
                     style={{ display: 'none' }} 
-                    className="w-64 h-64 flex flex-col items-center justify-center bg-gray-50 rounded border-2 border-dashed border-gray-300"
+                    className="w-48 h-48 sm:w-64 sm:h-64 flex flex-col items-center justify-center bg-gray-50 rounded border-2 border-dashed border-gray-300"
                   >
                   <p className="text-gray-600">QR Code loading...</p>
                     </div>
@@ -414,7 +415,7 @@ const Deposit = () => {
                     setSuccess('Address copied to clipboard!');
                     setTimeout(() => setSuccess(''), 2000);
                   }}
-                  className="mt-2 px-3 py-1 text-xs bg-purple-600/20 text-purple-300 rounded hover:bg-purple-600/30 transition-colors"
+                  className="mt-2 min-h-[44px] px-3 py-2 text-sm bg-purple-600/20 text-purple-300 rounded hover:bg-purple-600/30 transition-colors"
                 >
                   Copy Address
                 </button>
@@ -428,7 +429,7 @@ const Deposit = () => {
                   href={currentTransaction.invoiceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:opacity-90 transition-opacity"
                 >
                   <VscLinkExternal size={18} />
                   Open Payment Page
@@ -460,7 +461,7 @@ const Deposit = () => {
             <div className="flex gap-3 justify-center mt-6">
                 <button
                 onClick={handleClear}
-                  className="px-4 py-2 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors"
+                  className="min-h-[44px] px-4 py-2 rounded-lg bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-colors"
                 >
                 {currentTransaction.status === 'completed' ? 'Create New Deposit' : 'Cancel'}
                 </button>
@@ -470,15 +471,15 @@ const Deposit = () => {
       )}
 
       {/* Transaction History */}
-      <div className="bg-white/10 border border-white/20 rounded-2xl p-8 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white/10 border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
             <VscHistory className="text-purple-400" size={24} />
-            <h3 className="text-xl font-semibold text-white">Transaction History</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Transaction History</h3>
           </div>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="text-white/60 hover:text-white text-sm"
+            className="min-h-[44px] text-white/60 hover:text-white text-sm px-3"
           >
             {showHistory ? 'Hide' : 'Show'} History
           </button>
