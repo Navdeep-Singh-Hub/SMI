@@ -183,7 +183,11 @@ const Downline = () => {
             <p className="text-white/60 text-sm">Click on any member to expand and view their referrals</p>
           </div>
           <div className="space-y-2">
-            {downlineNetwork.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-white/60">Loading...</p>
+              </div>
+            ) : downlineNetwork.length === 0 ? (
               <div className="text-center py-12">
                 <VscOrganization className="text-white/40 mx-auto mb-4" size={48} />
                 <p className="text-white/60">No downline members yet</p>
