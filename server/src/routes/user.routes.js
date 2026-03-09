@@ -21,13 +21,13 @@ router.get('/balance', authMiddleware, async (req, res) => {
     const totalDeposits = depositTxns.reduce((sum, t) => sum + t.amount, 0);
 
     // Profit = (balance + wallet) - totalDeposits (net worth minus what they deposited)
-    const balance = user.balance ?? 0;
-    const wallet = user.wallet ?? 0;
+    const balance = Number(user.balance) || 0;
+    const wallet = Number(user.wallet) || 0;
     const profit = (balance + wallet) - totalDeposits;
 
     res.json({
-      balance,
-      wallet,
+      balance: Number(balance),
+      wallet: Number(wallet),
       profit: Math.round(profit * 100) / 100
     });
   } catch (error) {

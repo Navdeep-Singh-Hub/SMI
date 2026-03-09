@@ -50,11 +50,20 @@ The frontend must call your **Render API** (including `/api`):
    - **Environment:** Production (and Preview if you want).
 3. **Redeploy** the frontend so the variable is used.
 
-Without this, the Deposit page will still call `http://localhost:5000/api` and payments will not work in production.
+Without this, the app will call `http://localhost:5000/api`, requests will fail, and **balance will show $0.00** (or "—" / "Couldn't load balance"). Set `REACT_APP_API_URL` on Vercel and **redeploy** so the new value is baked into the build.
 
 ---
 
-## 4. Quick checklist
+## 4. Balance shows $0 or "—"
+
+- **Dashboard shows "—" or "Couldn't load balance"**  
+  The frontend cannot reach the API. Ensure **Vercel** has `REACT_APP_API_URL` = `https://YOUR-RENDER-SERVICE.onrender.com/api` and redeploy. Open the browser console; you may see a warning if the app is using localhost as API URL.
+- **Balance loads but is $0.00**  
+  The user in your **production** database has no balance. To test without paying, run the credit script against the **same MongoDB** that Render uses (same `MONGO_URI`): from your machine, set `MONGO_URI` to the production Atlas URI and run e.g. `node server/scripts/credit-user.js --list` then `node server/scripts/credit-user.js 1 500`.
+
+---
+
+## 5. Quick checklist
 
 - [ ] Render: `NOWPAYMENTS_API_KEY` (production key), `NOWPAYMENTS_IPN_SECRET`, `NOWPAYMENTS_CALLBACK_URL`, `NOWPAYMENTS_SANDBOX=false`, `FRONTEND_URL` set.
 - [ ] NOWPayments dashboard: IPN Callback URL = Render webhook URL; IPN Secret matches Render.
@@ -63,7 +72,7 @@ Without this, the Deposit page will still call `http://localhost:5000/api` and p
 
 ---
 
-## 5. Test
+## 6. Test
 
 1. Open your Vercel app → log in → go to **Deposit**.
 2. Enter an amount, choose a currency, click **Pay Now**.

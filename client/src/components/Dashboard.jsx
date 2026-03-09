@@ -20,11 +20,18 @@ import FloatingLines from './FloatingLines';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// Warn if deployed app might be calling wrong API (env not set on host)
+if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && API_BASE.includes('localhost')) {
+  console.warn('[SMI] REACT_APP_API_URL is not set; balance and API calls may fail. Set it in your host (e.g. Vercel) to your backend URL, e.g. https://your-api.onrender.com/api');
+}
+
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('plans');
   const [balance, setBalance] = useState(0);
   const [wallet, setWallet] = useState(0);
   const [profit, setProfit] = useState(0);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+  const [balanceError, setBalanceError] = useState(false);
   const [sidebarHover, setSidebarHover] = useState(false);
   const [initialPlanForInvest, setInitialPlanForInvest] = useState(null);
   const navigate = useNavigate();
@@ -61,9 +68,12 @@ const Dashboard = () => {
   }, [getAccessTokenSilently]);
 
   const fetchUserBalance = async () => {
+    setBalanceError(false);
+    setBalanceLoading(true);
     try {
       const token = await getAccessTokenSilently();
       if (!token) {
+        setBalanceLoading(false);
         navigate('/login');
         return;
       }
@@ -76,14 +86,23 @@ const Dashboard = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setBalance(data.balance || 0);
-        setWallet(data.wallet || 0);
-        setProfit(data.profit || 0);
+        const b = Number(data.balance);
+        const w = Number(data.wallet);
+        const p = Number(data.profit);
+        setBalance(Number.isFinite(b) ? b : 0);
+        setWallet(Number.isFinite(w) ? w : 0);
+        setProfit(Number.isFinite(p) ? p : 0);
+        setBalanceError(false);
       } else if (response.status === 401) {
         auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+      } else {
+        setBalanceError(true);
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
+      setBalanceError(true);
+    } finally {
+      setBalanceLoading(false);
     }
   };
 
@@ -195,18 +214,29 @@ const Dashboard = () => {
           {/* Total Wallet */}
           <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
             <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Total Wallet</p>
-            <p className="text-lg sm:text-2xl font-bold text-green-400 truncate">${wallet.toFixed(2)}</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-400 truncate">
+              {balanceLoading ? '...' : balanceError ? '—' : `$${wallet.toFixed(2)}`}
+            </p>
           </div>
           {/* Balance */}
           <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
             <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Balance</p>
-            <p className="text-lg sm:text-2xl font-bold text-blue-400 truncate">${balance.toFixed(2)}</p>
+            <p className="text-lg sm:text-2xl font-bold text-blue-400 truncate">
+              {balanceLoading ? '...' : balanceError ? '—' : `$${balance.toFixed(2)}`}
+            </p>
           </div>
           {/* Profit */}
           <div className={`bg-gradient-to-r ${profit >= 0 ? 'from-green-500/20 to-green-600/20 border-green-500/30' : 'from-red-500/20 to-red-600/20 border-red-500/30'} border rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]`}>
             <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Profit</p>
-            <p className={`text-lg sm:text-2xl font-bold truncate ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>${profit.toFixed(2)}</p>
+            <p className={`text-lg sm:text-2xl font-bold truncate ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {balanceLoading ? '...' : balanceError ? '—' : `$${profit.toFixed(2)}`}
+            </p>
           </div>
+          {balanceError && (
+            <p className="w-full text-amber-400/90 text-xs mt-1">
+              Couldn&apos;t load balance. Check that the app is connected to the right API (see console). <button type="button" onClick={() => fetchUserBalance()} className="underline ml-1">Retry</button>
+            </p>
+          )}
         </div>
         
         <div className="p-4 sm:p-6 md:p-8 relative z-10">
