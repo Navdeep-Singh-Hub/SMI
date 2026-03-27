@@ -10,12 +10,25 @@ const userSchema = new mongoose.Schema(
     balance: { type: Number, default: 0 },
     wallet: { type: Number, default: 0 },
     transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
-    referralCode: { type: String, unique: true, sparse: true }, // e.g. ABC12XYZ, for shareable link
-    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    referralCode: { type: String, unique: true, sparse: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    // Profile (required for full account; collected at registration / profile)
+    phone: { type: String, default: '' },
+    address: { type: String, default: '' },
+    // KYC — required only for withdrawals; submitted docs pending admin review
+    kycStatus: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'rejected'],
+      default: 'none'
+    },
+    kycAadhaarFront: { type: String, default: '' },
+    kycAadhaarBack: { type: String, default: '' },
+    kycPan: { type: String, default: '' },
+    kycHoldingPhoto: { type: String, default: '' },
+    kycSubmittedAt: { type: Date },
+    kycRejectedReason: { type: String, default: '' }
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model('User', userSchema);
-
-

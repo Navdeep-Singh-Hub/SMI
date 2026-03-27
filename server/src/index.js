@@ -12,6 +12,7 @@ app.use(morgan('dev'));
 // Static file serving for QR codes and uploads
 app.use('/api/qr', express.static(path.join(__dirname, '..', 'qrs')));
 app.use('/api/uploads/payment-proofs', express.static(path.join(__dirname, '..', 'uploads', 'payment-proofs')));
+app.use('/api/uploads/kyc', express.static(path.join(__dirname, '..', 'uploads', 'kyc')));
 
 // Webhook route needs raw body for signature verification (register before JSON parser)
 const depositRoutes = require('./routes/deposit.routes');
@@ -25,6 +26,8 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/contact', require('./routes/contact.routes'));
 app.use('/api/deposit', require('./routes/deposit.routes'));
 app.use('/api/user', require('./routes/user.routes'));
+app.use('/api/user/kyc', require('./routes/kyc.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/invest', require('./routes/invest.routes'));
 app.use('/api/withdraw', require('./routes/withdraw.routes'));
 app.use('/api/affiliate', require('./routes/affiliate.routes'));

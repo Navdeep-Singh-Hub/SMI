@@ -5,7 +5,6 @@ import Dock from './components/Dock';
 import ClickSpark from './components/ClickSpark';
 import LightRays from './components/LightRays';
 import { ScrollFadeIn, ScrollScaleIn, ScrollSlideIn } from './components/ScrollAnimation';
-import { TradingScene, CoinsScene } from './components/Scene3D';
 import Dashboard from './components/Dashboard';
 import { VscHome, VscQuestion, VscShield, VscFile, VscMail } from 'react-icons/vsc';
 
@@ -14,6 +13,33 @@ const Home = () => {
 
   return (
   <div className="min-h-screen relative overflow-hidden bg-black">
+    <style>{`
+      @keyframes smiFloatY {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-14px); }
+      }
+      @keyframes smiPulseGlow {
+        0%, 100% { opacity: 0.35; filter: blur(32px); }
+        50% { opacity: 0.7; filter: blur(44px); }
+      }
+      @keyframes smiSpinSlow {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes smiGridShift {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(28px); }
+      }
+      @keyframes smiWaveX {
+        0%, 100% { transform: translateX(-8px); }
+        50% { transform: translateX(12px); }
+      }
+      .smi-float { animation: smiFloatY 6s ease-in-out infinite; }
+      .smi-glow { animation: smiPulseGlow 5.5s ease-in-out infinite; }
+      .smi-spin { animation: smiSpinSlow 20s linear infinite; }
+      .smi-grid { animation: smiGridShift 2.8s linear infinite alternate; }
+      .smi-wave { animation: smiWaveX 4.8s ease-in-out infinite; }
+    `}</style>
     {/* LightRays Background */}
     <div style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: 0 }}>
       <LightRays
@@ -51,8 +77,25 @@ const Home = () => {
           </div>
         </ScrollFadeIn>
         <ScrollFadeIn delay={0.3}>
-          <div className="mt-8 sm:mt-16 h-56 sm:h-72 md:h-96">
-            <TradingScene />
+          <div className="mt-8 sm:mt-16 h-56 sm:h-72 md:h-96 relative rounded-3xl border border-white/15 bg-black/30 backdrop-blur-md overflow-hidden">
+            <div className="absolute -top-16 -left-8 w-56 h-56 rounded-full bg-cyan-400/20 smi-glow" />
+            <div className="absolute -bottom-20 right-0 w-64 h-64 rounded-full bg-purple-500/25 smi-glow" />
+            <div className="absolute inset-0 opacity-35 smi-grid" style={{ backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative w-[88%] h-[70%] max-w-3xl">
+                <div className="absolute left-0 right-0 top-[58%] h-[2px] bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent smi-wave" />
+                <div className="absolute left-[8%] top-[46%] w-[10px] h-[10px] rounded-full bg-cyan-300 smi-float" />
+                <div className="absolute left-[24%] top-[34%] w-[10px] h-[10px] rounded-full bg-purple-300 smi-float" style={{ animationDelay: '0.8s' }} />
+                <div className="absolute left-[42%] top-[52%] w-[10px] h-[10px] rounded-full bg-fuchsia-300 smi-float" style={{ animationDelay: '1.2s' }} />
+                <div className="absolute left-[60%] top-[24%] w-[10px] h-[10px] rounded-full bg-cyan-200 smi-float" style={{ animationDelay: '0.4s' }} />
+                <div className="absolute left-[78%] top-[40%] w-[10px] h-[10px] rounded-full bg-violet-300 smi-float" style={{ animationDelay: '1.6s' }} />
+                <div className="absolute right-[3%] top-[17%] w-24 h-24 smi-spin opacity-80">
+                  <div className="absolute inset-0 rounded-full border border-cyan-300/60" />
+                  <div className="absolute inset-2 rounded-full border border-purple-300/60" />
+                </div>
+                <div className="absolute left-[32%] top-[66%] text-[10px] sm:text-xs text-white/60 tracking-wide">LIVE SIGNAL ENGINE</div>
+              </div>
+            </div>
           </div>
         </ScrollFadeIn>
       </div>
@@ -67,8 +110,12 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           <ScrollScaleIn delay={0.1}>
             <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
-                <TradingScene />
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden relative border border-white/10 bg-black/40">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-purple-500/20 smi-glow" />
+                <div className="absolute left-4 right-4 top-1/2 h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent smi-wave" />
+                <div className="absolute left-[18%] top-[42%] w-2.5 h-2.5 rounded-full bg-cyan-300 smi-float" />
+                <div className="absolute left-[45%] top-[30%] w-2.5 h-2.5 rounded-full bg-purple-300 smi-float" style={{ animationDelay: '0.7s' }} />
+                <div className="absolute left-[74%] top-[54%] w-2.5 h-2.5 rounded-full bg-fuchsia-300 smi-float" style={{ animationDelay: '1.2s' }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Automated Forex Trading</h3>
               <p className="text-white/80 text-sm sm:text-base">Advanced algorithms scan markets 24/7 and execute trades with precision timing.</p>
@@ -76,8 +123,11 @@ const Home = () => {
           </ScrollScaleIn>
           <ScrollScaleIn delay={0.2}>
             <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
-                <CoinsScene />
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden relative border border-white/10 bg-black/40">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-300/20 via-transparent to-cyan-400/20 smi-glow" />
+                <div className="absolute left-[18%] top-[22%] w-10 h-10 rounded-full border border-amber-300/60 bg-amber-400/20 smi-float" />
+                <div className="absolute left-[40%] top-[50%] w-12 h-12 rounded-full border border-cyan-300/60 bg-cyan-400/20 smi-float" style={{ animationDelay: '0.8s' }} />
+                <div className="absolute left-[66%] top-[30%] w-9 h-9 rounded-full border border-purple-300/60 bg-purple-400/20 smi-float" style={{ animationDelay: '1.3s' }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Efficient Indices Trading</h3>
               <p className="text-white/80 text-sm sm:text-base">Optimized strategies for S&P 500, NASDAQ, UK100, and global indices.</p>
@@ -85,8 +135,13 @@ const Home = () => {
           </ScrollScaleIn>
           <ScrollScaleIn delay={0.3}>
             <div className="bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-8 backdrop-blur-sm hover:bg-white/15 transition-all">
-              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden">
-                <TradingScene />
+              <div className="h-36 sm:h-48 mb-4 sm:mb-6 rounded-xl overflow-hidden relative border border-white/10 bg-black/40">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-transparent to-cyan-400/20 smi-glow" />
+                <div className="absolute left-6 right-6 bottom-8 h-[3px] bg-gradient-to-r from-cyan-300/50 via-purple-300 to-cyan-300/50 smi-wave" />
+                <div className="absolute left-[20%] bottom-[30%] w-2.5 h-9 rounded-full bg-cyan-300/70 smi-float" />
+                <div className="absolute left-[34%] bottom-[30%] w-2.5 h-12 rounded-full bg-purple-300/70 smi-float" style={{ animationDelay: '0.6s' }} />
+                <div className="absolute left-[48%] bottom-[30%] w-2.5 h-7 rounded-full bg-cyan-200/70 smi-float" style={{ animationDelay: '1.1s' }} />
+                <div className="absolute left-[62%] bottom-[30%] w-2.5 h-14 rounded-full bg-fuchsia-300/70 smi-float" style={{ animationDelay: '1.7s' }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-white">Commodities Trading</h3>
               <p className="text-white/80 text-sm sm:text-base">Trade gold, oil, and other commodities with intelligent risk management.</p>
@@ -255,11 +310,33 @@ const Home = () => {
   );
 };
 
-// Auth0 signup: redirects to Auth0 Universal Login with signup screen
+// Auth0 signup: collect required profile fields, then redirect to Auth0 Universal Login
 const Register = () => {
   const { loginWithRedirect } = useAuth0();
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [regError, setRegError] = useState('');
 
   const handleSignUp = () => {
+    setRegError('');
+    if (!username.trim() || !phone.trim() || !address.trim()) {
+      setRegError('Username, mobile number, and address are required.');
+      return;
+    }
+    try {
+      localStorage.setItem(
+        'smi_registration_profile',
+        JSON.stringify({
+          username: username.trim(),
+          phone: phone.trim(),
+          address: address.trim()
+        })
+      );
+    } catch (e) {
+      setRegError('Could not save form. Please try again.');
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) try { localStorage.setItem('smi_referral_code', ref.trim()); } catch (e) { /* ignore */ }
@@ -285,16 +362,51 @@ const Register = () => {
       <div className="w-full max-w-md bg-white/10 border border-white/6 rounded-2xl p-5 sm:p-6 text-left relative z-10 backdrop-blur-sm mx-auto">
         <div className="font-bold text-xl sm:text-2xl mb-2">SMI</div>
         <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Let&apos;s Get Started</h2>
-        <p className="text-white/80 mb-5 sm:mb-6 text-sm sm:text-base">Register a new membership with SMI.</p>
-        <div className="grid gap-4">
+        <p className="text-white/80 mb-4 sm:mb-5 text-sm sm:text-base">Enter your details, then continue to secure signup. KYC is only needed later when you withdraw.</p>
+        <div className="grid gap-3 sm:gap-4">
+          <div>
+            <label htmlFor="reg-username" className="block text-white/70 text-xs mb-1">Username *</label>
+            <input
+              id="reg-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              className="w-full min-h-[44px] px-4 py-2 rounded-lg border border-white/30 bg-black/30 text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+              placeholder="Choose a username"
+            />
+          </div>
+          <div>
+            <label htmlFor="reg-phone" className="block text-white/70 text-xs mb-1">Mobile number *</label>
+            <input
+              id="reg-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+              className="w-full min-h-[44px] px-4 py-2 rounded-lg border border-white/30 bg-black/30 text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+              placeholder="+91 98765 43210"
+            />
+          </div>
+          <div>
+            <label htmlFor="reg-address" className="block text-white/70 text-xs mb-1">Address *</label>
+            <textarea
+              id="reg-address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              rows={3}
+              className="w-full px-4 py-2 rounded-lg border border-white/30 bg-black/30 text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm resize-y min-h-[80px]"
+              placeholder="Full address (city, state, PIN)"
+            />
+          </div>
+          {regError && <p className="text-red-400 text-sm">{regError}</p>}
           <button
             type="button"
             onClick={handleSignUp}
             className="min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity w-full"
           >
-            Create Account
+            Continue to Create Account
           </button>
-          <p className="text-white/50 text-xs mt-3 text-center">You’ll be taken to a secure page to create your account.</p>
+          <p className="text-white/50 text-xs mt-1 text-center">You’ll be taken to a secure page to verify email and finish signup.</p>
           <div className="mt-6 text-center">
             <p className="text-white/80 text-sm">
               Already have an account?{' '}

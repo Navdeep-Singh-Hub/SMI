@@ -51,6 +51,9 @@ In the same page, open **"Environment"** or **"Environment Variables"** and add:
 | `AUTH0_DOMAIN` | `dev-13py8orx1jq30sww.us.auth0.com` | Your Auth0 domain |
 | `AUTH0_AUDIENCE` | `https://smi-api` | Your Auth0 API identifier |
 | `FRONTEND_URL` | `https://smi-trading.vercel.app` | For CORS; your Vercel app URL |
+| `ADMIN_API_KEY` | (long random string) | Optional but needed to approve/reject KYC via `POST /api/admin/kyc/decision` |
+
+KYC uploads are saved under `server/uploads/kyc/`. On Render, disk is **ephemeral** — consider cloud storage for production. See `KYC_AND_PROFILE.md`.
 
 If you use NOWPayments, add:
 

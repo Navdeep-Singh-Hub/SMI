@@ -8,14 +8,17 @@ import {
   VscAccount, 
   VscOrganization,
   VscSignOut,
-  VscGraph
+  VscGraph,
+  VscPerson
 } from 'react-icons/vsc';
+import { AiFillGift } from 'react-icons/ai';
 import Deposit from './Deposit';
 import Invest from './Invest';
 import Withdraw from './Withdraw';
 import AffiliateProgram from './AffiliateProgram';
 import Downline from './Downline';
 import Plans from './Plans';
+import Profile from './Profile';
 import FloatingLines from './FloatingLines';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -34,6 +37,8 @@ const Dashboard = () => {
   const [balanceError, setBalanceError] = useState(false);
   const [sidebarHover, setSidebarHover] = useState(false);
   const [initialPlanForInvest, setInitialPlanForInvest] = useState(null);
+  const [preLaunchInvestActive, setPreLaunchInvestActive] = useState(false);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
   const navigate = useNavigate();
   const { getAccessTokenSilently, logout: auth0Logout } = useAuth0();
 
@@ -66,6 +71,68 @@ const Dashboard = () => {
     attachReferrer();
     return () => { mounted = false; };
   }, [getAccessTokenSilently]);
+
+  // Sync registration fields (phone, address, username) saved before Auth0 signup
+  useEffect(() => {
+    let mounted = true;
+    const syncRegistration = async () => {
+      try {
+        const raw = localStorage.getItem('smi_registration_profile');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const token = await getAccessTokenSilently();
+        const res = await fetch(`${API_BASE}/user/profile`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            phone: (data.phone || '').trim(),
+            address: (data.address || '').trim(),
+            username: (data.username || '').trim() || undefined
+          })
+        });
+        if (res.ok && mounted) {
+          localStorage.removeItem('smi_registration_profile');
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
+      } catch (e) {
+        console.error('Registration profile sync error:', e);
+      }
+    };
+    syncRegistration();
+    return () => { mounted = false; };
+  }, [getAccessTokenSilently]);
+
+  const fetchProfileFlags = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      if (!token) return;
+      const res = await fetch(`${API_BASE}/user/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileIncomplete(!data.profileComplete);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileFlags();
+    const onProfile = () => fetchProfileFlags();
+    window.addEventListener('profileUpdated', onProfile);
+    return () => window.removeEventListener('profileUpdated', onProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleMenuClick = (id) => {
+    if (id === 'invest') setPreLaunchInvestActive(false);
+    setActiveMenu(id);
+  };
 
   const fetchUserBalance = async () => {
     setBalanceError(false);
@@ -108,10 +175,12 @@ const Dashboard = () => {
 
   const menuItems = [
     { id: 'plans', label: 'Dashboard', icon: <VscGraph size={20} /> },
+    { id: 'preLaunchStaking', label: 'Pre-Launch Staking', shortLabel: 'Pre-Launch', icon: <AiFillGift size={20} /> },
     { id: 'invest', label: 'Invest', icon: <VscCreditCard size={20} /> },
-    { id: 'withdraw', label: 'Withdraw', icon: <VscArrowUp size={20} /> },
     { id: 'deposit', label: 'Deposit', icon: <VscArrowDown size={20} /> },
-    { id: 'affiliate', label: 'Affiliate Program', icon: <VscAccount size={20} /> },
+    { id: 'profile', label: 'Profile', icon: <VscPerson size={20} /> },
+    { id: 'withdraw', label: 'Withdraw', icon: <VscArrowUp size={20} /> },
+    { id: 'affiliate', label: 'Affiliate Program', shortLabel: 'Affiliate', icon: <VscAccount size={20} /> },
     { id: 'downline', label: 'Downline', icon: <VscOrganization size={20} /> },
   ];
 
@@ -122,9 +191,36 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeMenu) {
       case 'plans':
-        return <Plans onInvestPlan={(plan) => { setInitialPlanForInvest(plan); setActiveMenu('invest'); }} />;
+        return (
+          <Plans
+            onInvestPlan={(plan) => {
+              setPreLaunchInvestActive(false);
+              setInitialPlanForInvest(plan);
+              setActiveMenu('invest');
+            }}
+          />
+        );
+      case 'preLaunchStaking':
+        return (
+          <Plans
+            mode="preLaunch"
+            onInvestPlan={(plan) => {
+              setPreLaunchInvestActive(true);
+              setInitialPlanForInvest({ ...plan, preLaunch: true });
+              setActiveMenu('invest');
+            }}
+          />
+        );
       case 'invest':
-        return <Invest initialPlanForInvest={initialPlanForInvest} onClearInitialPlan={() => setInitialPlanForInvest(null)} />;
+        return (
+          <Invest
+            preLaunchInvestActive={preLaunchInvestActive}
+            initialPlanForInvest={initialPlanForInvest}
+            onClearInitialPlan={() => setInitialPlanForInvest(null)}
+          />
+        );
+      case 'profile':
+        return <Profile />;
       case 'withdraw':
         return <Withdraw />;
       case 'deposit':
@@ -164,7 +260,7 @@ const Dashboard = () => {
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveMenu(item.id)}
+                  onClick={() => handleMenuClick(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeMenu === item.id
                       ? 'bg-purple-600 text-white'
@@ -240,6 +336,18 @@ const Dashboard = () => {
         </div>
         
         <div className="p-4 sm:p-6 md:p-8 relative z-10">
+          {profileIncomplete && (
+            <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-100 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span>Please complete your profile (mobile number and address) — required for your account.</span>
+              <button
+                type="button"
+                onClick={() => handleMenuClick('profile')}
+                className="min-h-[40px] px-4 py-2 rounded-lg bg-amber-500/30 text-white font-medium hover:bg-amber-500/40 shrink-0"
+              >
+                Open Profile
+              </button>
+            </div>
+          )}
           {renderContent()}
         </div>
       </main>
@@ -250,7 +358,7 @@ const Dashboard = () => {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveMenu(item.id)}
+              onClick={() => handleMenuClick(item.id)}
               className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all flex-1 max-w-[80px] ${
                 activeMenu === item.id
                   ? 'bg-purple-600/80 text-white'
@@ -259,7 +367,7 @@ const Dashboard = () => {
               aria-label={item.label}
             >
               {item.icon}
-              <span className="text-[10px] font-medium truncate w-full text-center">{item.label}</span>
+              <span className="text-[10px] font-medium truncate w-full text-center">{item.shortLabel || item.label}</span>
             </button>
           ))}
           <button

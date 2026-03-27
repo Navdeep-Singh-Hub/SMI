@@ -36,6 +36,22 @@ const Withdraw = () => {
   const pendingWithdrawals = 0; // TODO: from API when withdrawal requests exist
   const minWithdraw = 50;
   const [withdrawalHistory, setWithdrawalHistory] = useState([]);
+  const [kycStatus, setKycStatus] = useState('none');
+  const [profileComplete, setProfileComplete] = useState(true);
+
+  const fetchWithdrawalRules = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const res = await fetch(`${API_BASE}/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setKycStatus(data.kycStatus || 'none');
+        setProfileComplete(!!data.profileComplete);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchWithdrawalHistory = async () => {
     try {
@@ -49,6 +65,14 @@ const Withdraw = () => {
       console.error('Fetch withdrawal history error:', e);
     }
   };
+
+  useEffect(() => {
+    fetchWithdrawalRules();
+    const onProfile = () => fetchWithdrawalRules();
+    window.addEventListener('profileUpdated', onProfile);
+    return () => window.removeEventListener('profileUpdated', onProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -107,6 +131,19 @@ const Withdraw = () => {
       return;
     }
 
+    if (!profileComplete) {
+      setSubmitError('Complete your profile (phone and address) under Profile before withdrawing.');
+      return;
+    }
+    if (kycStatus !== 'approved') {
+      setSubmitError(
+        kycStatus === 'pending'
+          ? 'KYC is under review. Withdrawals are enabled after approval.'
+          : 'Complete KYC verification in Profile before withdrawing.'
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       const token = await getAccessTokenSilently();
@@ -130,6 +167,8 @@ const Withdraw = () => {
         alert(`Withdrawal request of $${amount.toFixed(2)} submitted successfully.`);
       } else {
         setSubmitError(data.message || 'Withdrawal request failed.');
+        if (data.kycStatus) setKycStatus(data.kycStatus);
+        if (data.profileIncomplete) fetchWithdrawalRules();
       }
     } catch (err) {
       console.error('Withdraw submit error:', err);
@@ -145,6 +184,23 @@ const Withdraw = () => {
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Withdraw</h2>
         <p className="text-white/60 text-sm sm:text-base">Withdraw your earnings to your preferred payment method</p>
       </div>
+
+      {!profileComplete && (
+        <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-100 text-sm">
+          Add your <strong>mobile number</strong> and <strong>address</strong> in <strong>Profile</strong> before you can withdraw.
+        </div>
+      )}
+      {profileComplete && kycStatus !== 'approved' && (
+        <div className="mb-4 rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-3 text-cyan-100 text-sm">
+          {kycStatus === 'pending' ? (
+            <>Your KYC documents are <strong>under review</strong>. Withdrawals unlock after approval.</>
+          ) : (
+            <>
+              <strong>KYC is required to withdraw.</strong> Go to <strong>Profile</strong> and upload Aadhaar (front &amp; back), PAN, and your photo holding Aadhaar — then wait for approval.
+            </>
+          )}
+        </div>
+      )}
 
       {/* Balance Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -374,7 +430,13 @@ const Withdraw = () => {
 
             <button
               type="submit"
-              disabled={submitting || !withdrawAmount || parseFloat(withdrawAmount) < minWithdraw}
+              disabled={
+                submitting ||
+                !withdrawAmount ||
+                parseFloat(withdrawAmount) < minWithdraw ||
+                !profileComplete ||
+                kycStatus !== 'approved'
+              }
               className="w-full min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting...' : 'Submit Withdrawal Request'}

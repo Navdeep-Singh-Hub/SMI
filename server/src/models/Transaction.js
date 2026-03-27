@@ -20,6 +20,9 @@ const transactionSchema = new mongoose.Schema(
     planName: { type: String }, // Track which investment plan was purchased
     planDailyReturn: { type: Number }, // e.g. 2.5 for 2.5%
     planDurationDays: { type: Number }, // e.g. 7, 14, 30
+    // Pre-launch staking: earnings multiplier (e.g. 4 for 4X offer)
+    preLaunch: { type: Boolean, default: false },
+    preLaunchMultiplier: { type: Number, default: 1 },
     // NOWPayments fields
     nowpaymentsPaymentId: { type: String },
     nowpaymentsInvoiceUrl: { type: String },

@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 // POST /api/invest/create - Create a new investment
 router.post('/create', authMiddleware, async (req, res) => {
   try {
-    const { planName, amount } = req.body;
+    const { planName, amount, preLaunch } = req.body;
 
     if (!planName || !amount) {
       return res.status(400).json({ message: 'Plan name and amount are required' });
@@ -68,6 +68,9 @@ router.post('/create', authMiddleware, async (req, res) => {
       });
     }
 
+    const isPreLaunch = preLaunch === true || preLaunch === 'true';
+    const preLaunchMultiplier = isPreLaunch ? 4 : 1;
+
     // Create investment transaction with plan terms
     const transaction = await Transaction.create({
       user: req.userId,
@@ -76,8 +79,12 @@ router.post('/create', authMiddleware, async (req, res) => {
       planName: planName,
       planDailyReturn: plan.dailyReturn,
       planDurationDays: plan.durationDays,
+      preLaunch: isPreLaunch,
+      preLaunchMultiplier,
       status: 'completed',
-      description: `Investment in ${planName} plan`
+      description: isPreLaunch
+        ? `Pre-launch staking (4X offer) — ${planName} plan`
+        : `Investment in ${planName} plan`
     });
 
     // Deduct from balance
@@ -157,17 +164,22 @@ router.get('/active', authMiddleware, async (req, res) => {
       const startDate = new Date(inv.createdAt);
       const durationDays = inv.planDurationDays || 7;
       const dailyReturn = inv.planDailyReturn || 2.5;
+      const mult = inv.preLaunchMultiplier && inv.preLaunchMultiplier > 1 ? inv.preLaunchMultiplier : 1;
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + durationDays);
       const daysElapsed = Math.floor((now - startDate) / (24 * 60 * 60 * 1000));
       const daysRemaining = Math.max(0, durationDays - daysElapsed);
-      const dailyEarning = (inv.amount * dailyReturn) / 100;
+      const baseDaily = (inv.amount * dailyReturn) / 100;
+      const dailyEarning = baseDaily * mult;
       const totalEarned = dailyEarning * Math.min(daysElapsed, durationDays);
       return {
         id: inv._id,
         plan: inv.planName,
         amount: inv.amount,
         dailyReturn,
+        effectiveDailyReturn: Math.round(dailyReturn * mult * 1000) / 1000,
+        preLaunch: !!inv.preLaunch,
+        preLaunchMultiplier: mult,
         startDate: startDate.toISOString().split('T')[0],
         endDate: endDate.toISOString().split('T')[0],
         daysRemaining,

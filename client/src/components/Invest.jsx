@@ -4,7 +4,9 @@ import { VscCreditCard, VscGraph, VscCalendar, VscCheck } from 'react-icons/vsc'
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
+const PRE_LAUNCH_MULT = 4;
+
+const Invest = ({ initialPlanForInvest = null, onClearInitialPlan, preLaunchInvestActive = false }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [investmentAmount, setInvestmentAmount] = useState('');
@@ -124,8 +126,8 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
     }
   };
 
-  const calculateReturns = (amount, dailyReturn, duration) => {
-    const dailyEarning = (amount * dailyReturn) / 100;
+  const calculateReturns = (amount, dailyReturn, duration, mult = 1) => {
+    const dailyEarning = (amount * dailyReturn * mult) / 100;
     const totalEarning = dailyEarning * duration;
     return {
       daily: dailyEarning.toFixed(2),
@@ -133,13 +135,16 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
     };
   };
 
-  const calculateTodaysEarnings = (amount, dailyReturn) => {
-    return (amount * dailyReturn) / 100;
+  const investmentMult = (inv) => (inv.preLaunchMultiplier && inv.preLaunchMultiplier > 1 ? inv.preLaunchMultiplier : 1);
+
+  const calculateTodaysEarnings = (amount, dailyReturn, mult = 1) => {
+    return (amount * dailyReturn * mult) / 100;
   };
 
   const getTotalTodaysEarnings = () => {
     return activeInvestments.reduce((total, investment) => {
-      return total + calculateTodaysEarnings(investment.amount, investment.dailyReturn);
+      const m = investmentMult(investment);
+      return total + calculateTodaysEarnings(investment.amount, investment.dailyReturn, m);
     }, 0);
   };
 
@@ -192,7 +197,8 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
         },
         body: JSON.stringify({
           planName: selectedPlan.name,
-          amount: amount
+          amount: amount,
+          preLaunch: preLaunchInvestActive
         })
       });
 
@@ -224,6 +230,11 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
       <div className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Invest</h2>
         <p className="text-white/60 text-sm sm:text-base">Choose an investment plan and start earning</p>
+        {preLaunchInvestActive && (
+          <div className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-amber-100 text-sm">
+            Pre-launch staking mode: new investments from this flow earn at <strong className="text-green-400">{PRE_LAUNCH_MULT}×</strong> daily rate (shown below).
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -345,15 +356,15 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
                   {investmentAmount && (
                     <div className="mt-3 p-4 bg-white/5 rounded-lg space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/60">Daily Earnings:</span>
+                        <span className="text-white/60">Daily earnings{preLaunchInvestActive ? ` (${PRE_LAUNCH_MULT}× offer)` : ''}:</span>
                         <span className="text-green-400 font-semibold">
-                          ${calculateReturns(parseFloat(investmentAmount) || 0, selectedPlan.dailyReturn, 1).daily}
+                          ${calculateReturns(parseFloat(investmentAmount) || 0, selectedPlan.dailyReturn, 1, preLaunchInvestActive ? PRE_LAUNCH_MULT : 1).daily}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/60">Total Earnings ({selectedPlan.duration} days):</span>
+                        <span className="text-white/60">Total earnings ({selectedPlan.duration} days):</span>
                         <span className="text-green-400 font-bold">
-                          ${calculateReturns(parseFloat(investmentAmount) || 0, selectedPlan.dailyReturn, selectedPlan.duration).total}
+                          ${calculateReturns(parseFloat(investmentAmount) || 0, selectedPlan.dailyReturn, selectedPlan.duration, preLaunchInvestActive ? PRE_LAUNCH_MULT : 1).total}
                         </span>
                       </div>
                     </div>
@@ -412,29 +423,39 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan }) => {
               </div>
 
               {activeInvestments.map((investment) => {
-                const todaysEarning = calculateTodaysEarnings(investment.amount, investment.dailyReturn);
+                const m = investmentMult(investment);
+                const todaysEarning = calculateTodaysEarnings(investment.amount, investment.dailyReturn, m);
+                const effPct = Math.round(investment.dailyReturn * m * 1000) / 1000;
                 return (
               <div
                 key={investment.id || investment._id}
                 className="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-sm"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
                   <div>
                     <h3 className="text-xl font-bold text-white mb-1">{investment.plan} Plan</h3>
                     <p className="text-white/60 text-sm">Investment Amount: <span className="text-white font-semibold">${investment.amount.toLocaleString()}</span></p>
                   </div>
-                  <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
-                    Active
-                  </span>
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    {investment.preLaunch && (
+                      <span className="px-3 py-1 bg-amber-500/25 text-amber-200 border border-amber-400/40 rounded-full text-xs font-semibold">
+                        {m}× Pre-launch
+                      </span>
+                    )}
+                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
+                      Active
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-4">
                   <div className="bg-white/5 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <VscGraph className="text-purple-400" size={18} />
-                      <span className="text-white/60 text-xs sm:text-sm">Daily Return</span>
+                      <span className="text-white/60 text-xs sm:text-sm">Daily return{m > 1 ? ' (effective)' : ''}</span>
                     </div>
-                    <p className="text-green-400 font-bold text-base sm:text-lg">{investment.dailyReturn}%</p>
+                    <p className="text-green-400 font-bold text-base sm:text-lg">{effPct}%</p>
+                    {m > 1 && <p className="text-white/40 text-[10px] mt-0.5">Base {investment.dailyReturn}% × {m}</p>}
                   </div>
                   <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/20 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">

@@ -27,6 +27,22 @@ router.post('/create', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
+    if (user.kycStatus !== 'approved') {
+      return res.status(403).json({
+        message:
+          'KYC verification is required before withdrawal. Complete KYC in Profile and wait for approval.',
+        kycRequired: true,
+        kycStatus: user.kycStatus || 'none'
+      });
+    }
+
+    if (!(user.phone && String(user.phone).trim()) || !(user.address && String(user.address).trim())) {
+      return res.status(403).json({
+        message: 'Please complete your profile (phone and address) in Profile before withdrawing.',
+        profileIncomplete: true
+      });
+    }
+
     const method = payMethod === 'bank' ? 'bank' : 'crypto';
     if (method === 'crypto' && !(cryptoAddress && cryptoAddress.trim())) {
       return res.status(400).json({ message: 'Crypto wallet address is required' });
