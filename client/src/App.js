@@ -13,6 +13,18 @@ const Home = () => {
 
   return (
   <div className="min-h-screen relative overflow-hidden bg-black">
+    {/* Global seamless overlays so all sections look like one page */}
+    <div className="pointer-events-none fixed inset-0 z-[1]">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.12),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(168,85,247,0.10),transparent_60%)]" />
+      <div
+        className="absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.18) 1px, transparent 1px)',
+          backgroundSize: '56px 56px'
+        }}
+      />
+    </div>
     <style>{`
       @keyframes smiFloatY {
         0%, 100% { transform: translateY(0px); }
@@ -152,7 +164,7 @@ const Home = () => {
     </section>
     
     {/* Why Choose Section */}
-    <section id="why" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+    <section id="why" className="relative z-10 py-12 sm:py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-16 text-white text-center">Why Choose SMI?</h2>
@@ -194,7 +206,7 @@ const Home = () => {
     </section>
     
     {/* FAQ Section */}
-    <section id="faq" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+    <section id="faq" className="relative z-10 py-12 sm:py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-16 text-white text-center">Frequently Asked Questions</h2>
@@ -247,7 +259,7 @@ const Home = () => {
     </section>
     
     {/* Privacy Section */}
-    <section id="privacy" className="relative z-10 py-12 sm:py-16 md:py-24 bg-white/5">
+    <section id="privacy" className="relative z-10 py-12 sm:py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-5">
         <ScrollFadeIn>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 text-white text-center">Privacy Policy</h2>

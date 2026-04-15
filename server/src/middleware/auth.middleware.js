@@ -56,12 +56,23 @@ const authMiddleware = async (req, res, next) => {
       });
 
       const auth0Id = decoded.sub;
+      // Access tokens often omit `email` unless added via Auth0 Action; support namespaced custom claims too
+      const audNs = AUTH0_AUDIENCE ? String(AUTH0_AUDIENCE).replace(/\/$/, '') : '';
+      const tokenEmailRaw =
+        decoded.email ||
+        decoded['https://smi-api/email'] ||
+        (audNs ? decoded[`${audNs}/email`] : null);
+      const tokenEmail =
+        tokenEmailRaw && typeof tokenEmailRaw === 'string' && tokenEmailRaw.includes('@')
+          ? tokenEmailRaw.toLowerCase().trim()
+          : null;
+
       let user = await User.findOne({ auth0Id });
 
       if (!user) {
         const name = decoded.name || decoded.nickname || auth0Id;
-        const email = decoded.email || `${auth0Id.replace(/[|]/g, '_')}@auth0.local`;
-        const username = (decoded.email && decoded.email.split('@')[0]) || auth0Id.replace(/[|]/g, '_');
+        const email = tokenEmail || `${auth0Id.replace(/[|]/g, '_')}@auth0.local`;
+        const username = (tokenEmail && tokenEmail.split('@')[0]) || auth0Id.replace(/[|]/g, '_');
         const uniqueUsername = await ensureUniqueUsername(username);
         user = await User.create({
           auth0Id,
@@ -74,6 +85,16 @@ const authMiddleware = async (req, res, next) => {
           transactions: []
         });
         await ensureReferralCode(user);
+      } else if (tokenEmail && !tokenEmail.endsWith('@auth0.local')) {
+        // Upgrade placeholder emails once the API token carries a real address
+        const placeholder = user.email && String(user.email).endsWith('@auth0.local');
+        if (placeholder && user.email !== tokenEmail) {
+          const taken = await User.findOne({ email: tokenEmail, _id: { $ne: user._id } });
+          if (!taken) {
+            user.email = tokenEmail;
+            await user.save();
+          }
+        }
       }
       req.userId = user._id.toString();
       return next();

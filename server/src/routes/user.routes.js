@@ -59,7 +59,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId)
       .select(
-        'name username email phone address balance wallet createdAt kycStatus kycSubmittedAt kycRejectedReason kycAadhaarFront kycAadhaarBack kycPan kycHoldingPhoto'
+        'name username email phone address balance wallet createdAt kycStatus kycSubmittedAt kycRejectedReason kycAadhaarFront kycAadhaarBack kycHoldingPhoto'
       )
       .populate('transactions', 'type amount status createdAt', null, { sort: { createdAt: -1 }, limit: 10 });
 
@@ -74,7 +74,6 @@ router.get('/profile', authMiddleware, async (req, res) => {
       kycFiles: {
         aadhaarFront: user.kycAadhaarFront || '',
         aadhaarBack: user.kycAadhaarBack || '',
-        panCard: user.kycPan || '',
         holdingPhoto: user.kycHoldingPhoto || ''
       }
     });

@@ -9,7 +9,9 @@ import {
   VscOrganization,
   VscSignOut,
   VscGraph,
-  VscPerson
+  VscPerson,
+  VscInfo,
+  VscClose
 } from 'react-icons/vsc';
 import { AiFillGift } from 'react-icons/ai';
 import Deposit from './Deposit';
@@ -39,6 +41,13 @@ const Dashboard = () => {
   const [initialPlanForInvest, setInitialPlanForInvest] = useState(null);
   const [preLaunchInvestActive, setPreLaunchInvestActive] = useState(false);
   const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [profileNudgeHidden, setProfileNudgeHidden] = useState(() => {
+    try {
+      return sessionStorage.getItem('smi_profile_nudge_hide') === '1';
+    } catch {
+      return false;
+    }
+  });
   const navigate = useNavigate();
   const { getAccessTokenSilently, logout: auth0Logout } = useAuth0();
 
@@ -123,7 +132,15 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchProfileFlags();
-    const onProfile = () => fetchProfileFlags();
+    const onProfile = () => {
+      fetchProfileFlags();
+      try {
+        sessionStorage.removeItem('smi_profile_nudge_hide');
+      } catch {
+        /* ignore */
+      }
+      setProfileNudgeHidden(false);
+    };
     window.addEventListener('profileUpdated', onProfile);
     return () => window.removeEventListener('profileUpdated', onProfile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -291,9 +308,9 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative pb-20 md:pb-0">
+      <main className="flex-1 overflow-y-auto relative flex flex-col pb-20 md:pb-0 min-h-0">
         {/* FloatingLines Background */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 pointer-events-none">
           <FloatingLines 
             enabledWaves={["top","middle","bottom"]}
             lineCount={5}
@@ -304,50 +321,85 @@ const Dashboard = () => {
             parallax={true}
           />
         </div>
-        
-        {/* Balance Display - Stack on mobile, top-right on desktop */}
-        <div className="relative md:absolute top-0 md:top-4 right-0 md:right-4 z-10 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 p-4 md:p-0">
-          {/* Total Wallet */}
-          <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
-            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Total Wallet</p>
-            <p className="text-lg sm:text-2xl font-bold text-green-400 truncate">
-              {balanceLoading ? '...' : balanceError ? '—' : `$${wallet.toFixed(2)}`}
-            </p>
-          </div>
-          {/* Balance */}
-          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
-            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Balance</p>
-            <p className="text-lg sm:text-2xl font-bold text-blue-400 truncate">
-              {balanceLoading ? '...' : balanceError ? '—' : `$${balance.toFixed(2)}`}
-            </p>
-          </div>
-          {/* Profit */}
-          <div className={`bg-gradient-to-r ${profit >= 0 ? 'from-green-500/20 to-green-600/20 border-green-500/30' : 'from-red-500/20 to-red-600/20 border-red-500/30'} border rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]`}>
-            <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Profit</p>
-            <p className={`text-lg sm:text-2xl font-bold truncate ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {balanceLoading ? '...' : balanceError ? '—' : `$${profit.toFixed(2)}`}
-            </p>
-          </div>
-          {balanceError && (
-            <p className="w-full text-amber-400/90 text-xs mt-1">
-              Couldn&apos;t load balance. Check that the app is connected to the right API (see console). <button type="button" onClick={() => fetchUserBalance()} className="underline ml-1">Retry</button>
-            </p>
-          )}
-        </div>
-        
-        <div className="p-4 sm:p-6 md:p-8 relative z-10">
-          {profileIncomplete && (
-            <div className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-100 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span>Please complete your profile (mobile number and address) — required for your account.</span>
-              <button
-                type="button"
-                onClick={() => handleMenuClick('profile')}
-                className="min-h-[40px] px-4 py-2 rounded-lg bg-amber-500/30 text-white font-medium hover:bg-amber-500/40 shrink-0"
+
+        {/* Top bar: profile nudge + balances in document flow (no overlap with page content) */}
+        <div className="relative z-20 shrink-0 border-b border-white/[0.08] bg-black/55 backdrop-blur-xl">
+          <div className="p-3 sm:p-4 md:px-6 space-y-3">
+            {profileIncomplete && !profileNudgeHidden && (
+              <div
+                role="status"
+                className="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-gradient-to-r from-amber-950/80 to-zinc-950/80 px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
               >
-                Open Profile
-              </button>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
+                  <VscInfo size={20} aria-hidden />
+                </div>
+                <div className="min-w-0 flex-1 pt-0.5">
+                  <p className="text-sm font-semibold text-white">Finish your profile</p>
+                  <p className="text-xs sm:text-sm text-amber-100/75 mt-0.5 leading-snug">
+                    Add your <span className="text-amber-200/95 font-medium">mobile number</span> and{' '}
+                    <span className="text-amber-200/95 font-medium">address</span> so your account is complete.
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={() => handleMenuClick('profile')}
+                    className="min-h-[40px] whitespace-nowrap rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
+                  >
+                    Complete profile
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        sessionStorage.setItem('smi_profile_nudge_hide', '1');
+                      } catch {
+                        /* ignore */
+                      }
+                      setProfileNudgeHidden(true);
+                    }}
+                    className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                    aria-label="Hide reminder for this session"
+                    title="Hide for this session"
+                  >
+                    <VscClose size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 sm:justify-end">
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
+                <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Total Wallet</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-400 truncate">
+                  {balanceLoading ? '...' : balanceError ? '—' : `$${wallet.toFixed(2)}`}
+                </p>
+              </div>
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]">
+                <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Balance</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-400 truncate">
+                  {balanceLoading ? '...' : balanceError ? '—' : `$${balance.toFixed(2)}`}
+                </p>
+              </div>
+              <div className={`bg-gradient-to-r ${profit >= 0 ? 'from-green-500/20 to-green-600/20 border-green-500/30' : 'from-red-500/20 to-red-600/20 border-red-500/30'} border rounded-lg p-3 sm:p-4 backdrop-blur-sm shadow-lg min-w-0 flex-1 sm:flex-none sm:min-w-[120px] md:min-w-[140px]`}>
+                <p className="text-white/60 text-xs mb-0.5 sm:mb-1">Profit</p>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {balanceLoading ? '...' : balanceError ? '—' : `$${profit.toFixed(2)}`}
+                </p>
+              </div>
+              {balanceError && (
+                <p className="w-full sm:w-auto basis-full text-amber-400/90 text-xs sm:text-right">
+                  Couldn&apos;t load balance.{' '}
+                  <button type="button" onClick={() => fetchUserBalance()} className="underline font-medium">
+                    Retry
+                  </button>
+                </p>
+              )}
             </div>
-          )}
+          </div>
+        </div>
+
+        <div className="relative z-10 flex-1 min-h-0 px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
           {renderContent()}
         </div>
       </main>

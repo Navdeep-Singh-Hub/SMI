@@ -34,11 +34,10 @@ const upload = multer({
 const kycFields = upload.fields([
   { name: 'aadhaarFront', maxCount: 1 },
   { name: 'aadhaarBack', maxCount: 1 },
-  { name: 'panCard', maxCount: 1 },
   { name: 'holdingPhoto', maxCount: 1 }
 ]);
 
-// POST /api/user/kyc/submit — multipart: aadhaarFront, aadhaarBack, panCard, holdingPhoto
+// POST /api/user/kyc/submit — multipart: aadhaarFront, aadhaarBack, holdingPhoto
 router.post('/submit', authMiddleware, (req, res) => {
   kycFields(req, res, async (err) => {
     if (err) {
@@ -58,18 +57,16 @@ router.post('/submit', authMiddleware, (req, res) => {
       const f = req.files || {};
       const front = f.aadhaarFront?.[0];
       const back = f.aadhaarBack?.[0];
-      const pan = f.panCard?.[0];
       const hold = f.holdingPhoto?.[0];
 
-      if (!front || !back || !pan || !hold) {
+      if (!front || !back || !hold) {
         return res.status(400).json({
-          message: 'All four documents are required: Aadhaar front, Aadhaar back, PAN card, and photo holding Aadhaar.'
+          message: 'All three documents are required: Aadhaar front, Aadhaar back, and photo holding Aadhaar.'
         });
       }
 
       user.kycAadhaarFront = front.filename;
       user.kycAadhaarBack = back.filename;
-      user.kycPan = pan.filename;
       user.kycHoldingPhoto = hold.filename;
       user.kycStatus = 'pending';
       user.kycSubmittedAt = new Date();
@@ -91,7 +88,7 @@ router.post('/submit', authMiddleware, (req, res) => {
 router.get('/status', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select(
-      'kycStatus kycSubmittedAt kycRejectedReason kycAadhaarFront kycAadhaarBack kycPan kycHoldingPhoto'
+      'kycStatus kycSubmittedAt kycRejectedReason kycAadhaarFront kycAadhaarBack kycHoldingPhoto'
     );
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({
@@ -101,7 +98,6 @@ router.get('/status', authMiddleware, async (req, res) => {
       documentsSubmitted: !!(
         user.kycAadhaarFront &&
         user.kycAadhaarBack &&
-        user.kycPan &&
         user.kycHoldingPhoto
       )
     });

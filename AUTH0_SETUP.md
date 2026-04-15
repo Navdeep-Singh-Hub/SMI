@@ -49,3 +49,44 @@ AUTH0_AUDIENCE=https://smi-api
 - **Login / Sign up:** User clicks "Log In with Auth0" or "Sign Up with Auth0" → redirect to Auth0 Universal Login → redirect back to your app.
 - **API calls:** The React app gets an access token via `getAccessTokenSilently()` (with audience) and sends it as `Authorization: Bearer <token>`.
 - **Backend:** Auth middleware verifies the JWT with Auth0’s JWKS, finds or creates a user by `auth0Id` (sub), and sets `req.userId` for protected routes.
+
+## 5. Real email in Profile (not `auth0_…@auth0.local`)
+
+You may see a placeholder like `auth0_<id>@auth0.local` in MongoDB and on the Profile page. That happens because:
+
+- The SPA sends an **access token** for your API (`audience` = your API identifier).
+- By default, that **access token often does not include `email`** (only `sub`, `aud`, etc.).
+- The backend falls back to `auth0_<sub>@auth0.local` when creating the user.
+
+**What we already do**
+
+- The client requests `scope: openid profile email` so Auth0 knows the user’s email for the session.
+- If the access token ever contains `email` (or a namespaced claim), the backend **upgrades** a placeholder `@auth0.local` address to the real one automatically.
+
+**What you should add in Auth0 (recommended)**
+
+Add the email to the **access token** with an Action (so every API request carries it):
+
+1. Auth0 Dashboard → **Actions** → **Flows** → **Login**.
+2. **Add Action** → **Build Custom** → name e.g. `Add email to access token`.
+3. Use this logic (adjust namespace if your API identifier is not `https://smi-api`):
+
+```javascript
+exports.onExecutePostLogin = async (event, api) => {
+  const namespace = 'https://smi-api';
+  if (event.authorization) {
+    api.accessToken.setCustomClaim(`${namespace}/email`, event.user.email);
+    if (event.user.name) {
+      api.accessToken.setCustomClaim(`${namespace}/name`, event.user.name);
+    }
+  }
+};
+```
+
+4. Deploy the Action and place it in the **Login** flow.
+
+After that, have the user **log out and log in again** (or wait for token refresh). The next API call should sync the real email into the database if it was still a placeholder.
+
+**Decode the token (debug)**
+
+Use [jwt.io](https://jwt.io) on your access token: if there is no `email` and no `https://smi-api/email`, add the Action above.

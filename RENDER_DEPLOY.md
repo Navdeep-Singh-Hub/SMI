@@ -55,6 +55,8 @@ In the same page, open **"Environment"** or **"Environment Variables"** and add:
 
 KYC uploads are saved under `server/uploads/kyc/`. On Render, disk is **ephemeral** — consider cloud storage for production. See `KYC_AND_PROFILE.md`.
 
+| `MIN_DEPOSIT_USD` | `1` | Optional. Minimum deposit in USD (default `1`). Must match `REACT_APP_MIN_DEPOSIT_USD` on Vercel if you change it. |
+
 If you use NOWPayments, add:
 
 - `NOWPAYMENTS_API_KEY`

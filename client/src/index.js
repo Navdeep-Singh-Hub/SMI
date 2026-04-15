@@ -18,6 +18,8 @@ root.render(
       authorizationParams={{
         redirect_uri: window.location.origin,
         ...(audience && { audience }),
+        // Ask Auth0 for email (shows on user object; API token still needs Action for email claim)
+        scope: 'openid profile email',
       }}
     >
       <BrowserRouter>

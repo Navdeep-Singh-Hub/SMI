@@ -18,7 +18,7 @@ A banner appears on the dashboard until phone and address are saved.
 - Not required to trade or invest.
 - **Withdrawals** require `kycStatus === approved` and a complete profile (phone + address).
 - User uploads (multipart `POST /api/user/kyc/submit`):
-  - `aadhaarFront`, `aadhaarBack`, `panCard`, `holdingPhoto` (JPEG/PNG/WebP, ~6MB each)
+  - `aadhaarFront`, `aadhaarBack`, `holdingPhoto` (JPEG/PNG/WebP, ~6MB each)
 - Status: `none` → `pending` → `approved` or `rejected`.
 
 ## Admin: approve / reject KYC

@@ -6,6 +6,12 @@ import { INVESTMENT_PLANS } from '../data/investmentPlans';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+function planDisplayTitle(name) {
+  if (!name) return '';
+  const t = String(name).trim();
+  return /\bplan\b/i.test(t) ? t : `${t} Plan`;
+}
+
 const Plans = ({ onInvestPlan, mode = 'dashboard' }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [hasPurchasedDemoPlan, setHasPurchasedDemoPlan] = useState(false);
@@ -138,7 +144,7 @@ const Plans = ({ onInvestPlan, mode = 'dashboard' }) => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-2">{plan.name} Plan</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">{planDisplayTitle(plan.name)}</h3>
               <p className="text-white/60 text-sm mb-4">{plan.description}</p>
 
               {/* Plan Details */}

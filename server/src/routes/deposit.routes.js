@@ -5,6 +5,11 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/auth.middleware');
 const nowpaymentsService = require('../services/nowpayments.service');
 
+const MIN_DEPOSIT_USD = Math.max(
+  0.01,
+  parseFloat(process.env.MIN_DEPOSIT_USD || '1') || 1
+);
+
 // Helper function to update user balance
 const updateUserBalance = async (userId, amount) => {
   const user = await User.findById(userId);
@@ -27,6 +32,11 @@ router.post('/create', authMiddleware, async (req, res) => {
     }
 
     const depositAmount = parseFloat(amount);
+    if (depositAmount < MIN_DEPOSIT_USD) {
+      return res.status(400).json({
+        message: `Minimum deposit is $${MIN_DEPOSIT_USD.toFixed(2)} USD`
+      });
+    }
     const orderId = `deposit_${userId}_${Date.now()}`;
     const orderDescription = `Deposit of $${depositAmount.toFixed(2)}`;
 

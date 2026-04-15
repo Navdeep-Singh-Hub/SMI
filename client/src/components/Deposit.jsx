@@ -4,6 +4,11 @@ import { VscArrowDown, VscHistory, VscLinkExternal } from 'react-icons/vsc';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+const MIN_DEPOSIT_USD = Math.max(
+  0.01,
+  parseFloat(process.env.REACT_APP_MIN_DEPOSIT_USD || '1') || 1
+);
+
 const Deposit = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [amount, setAmount] = useState('');
@@ -156,8 +161,13 @@ const Deposit = () => {
 
   const handleCreateDeposit = async (e) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) {
+    const num = parseFloat(amount);
+    if (!amount || Number.isNaN(num) || num <= 0) {
       setError('Please enter a valid amount greater than 0');
+      return;
+    }
+    if (num < MIN_DEPOSIT_USD) {
+      setError(`Minimum deposit is $${MIN_DEPOSIT_USD.toFixed(2)}`);
       return;
     }
 
@@ -290,7 +300,9 @@ const Deposit = () => {
           </div>
           <div>
             <h3 className="text-xl font-semibold text-white">Deposit Amount</h3>
-              <p className="text-white/60 text-sm">Enter the amount you want to deposit (USD)</p>
+              <p className="text-white/60 text-sm">
+                Enter the amount you want to deposit (USD). Minimum <span className="text-white/90 font-medium">${MIN_DEPOSIT_USD.toFixed(2)}</span>.
+              </p>
           </div>
         </div>
 
@@ -308,7 +320,10 @@ const Deposit = () => {
               className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                 disabled={isLoading}
             />
-            {amount && parseFloat(amount) <= 0 && (
+            {amount && !Number.isNaN(parseFloat(amount)) && parseFloat(amount) > 0 && parseFloat(amount) < MIN_DEPOSIT_USD && (
+              <p className="text-amber-400 text-sm mt-1">Minimum deposit is ${MIN_DEPOSIT_USD.toFixed(2)} USD</p>
+            )}
+            {amount && !Number.isNaN(parseFloat(amount)) && parseFloat(amount) <= 0 && (
               <p className="text-red-400 text-sm mt-1">Please enter a valid amount greater than 0</p>
             )}
           </div>
@@ -346,7 +361,12 @@ const Deposit = () => {
 
           <button
             type="submit"
-              disabled={!amount || parseFloat(amount) <= 0 || isLoading}
+              disabled={
+                isLoading ||
+                !amount ||
+                Number.isNaN(parseFloat(amount)) ||
+                parseFloat(amount) < MIN_DEPOSIT_USD
+              }
             className="w-full min-h-[44px] px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
           >
               {isLoading ? 'Processing...' : 'Pay Now'}

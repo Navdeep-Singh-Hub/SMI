@@ -196,7 +196,7 @@ const Withdraw = () => {
             <>Your KYC documents are <strong>under review</strong>. Withdrawals unlock after approval.</>
           ) : (
             <>
-              <strong>KYC is required to withdraw.</strong> Go to <strong>Profile</strong> and upload Aadhaar (front &amp; back), PAN, and your photo holding Aadhaar — then wait for approval.
+              <strong>KYC is required to withdraw.</strong> Go to <strong>Profile</strong> and upload Aadhaar (front &amp; back) and your photo holding Aadhaar — then wait for approval.
             </>
           )}
         </div>

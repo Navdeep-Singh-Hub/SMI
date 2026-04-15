@@ -6,6 +6,13 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const PRE_LAUNCH_MULT = 4;
 
+/** Avoid titles like "Demo Plan Plan" when plan name already includes "Plan". */
+function planDisplayTitle(name) {
+  if (!name) return '';
+  const t = String(name).trim();
+  return /\bplan\b/i.test(t) ? t : `${t} Plan`;
+}
+
 const Invest = ({ initialPlanForInvest = null, onClearInitialPlan, preLaunchInvestActive = false }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -288,7 +295,7 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan, preLaunchInve
                   }`}>
                     <VscCreditCard className="text-white" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name} Plan</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">{planDisplayTitle(plan.name)}</h3>
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">Min Investment:</span>
@@ -335,7 +342,7 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan, preLaunchInve
                   <VscGraph className="text-white" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Invest in {selectedPlan.name} Plan</h3>
+                  <h3 className="text-xl font-semibold text-white">Invest in {planDisplayTitle(selectedPlan.name)}</h3>
                   <p className="text-white/60 text-sm">Enter your investment amount</p>
                 </div>
               </div>
@@ -433,7 +440,7 @@ const Invest = ({ initialPlanForInvest = null, onClearInitialPlan, preLaunchInve
               >
                 <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">{investment.plan} Plan</h3>
+                    <h3 className="text-xl font-bold text-white mb-1">{planDisplayTitle(investment.plan)}</h3>
                     <p className="text-white/60 text-sm">Investment Amount: <span className="text-white font-semibold">${investment.amount.toLocaleString()}</span></p>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-end">

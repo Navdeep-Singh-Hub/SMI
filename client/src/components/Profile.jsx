@@ -31,7 +31,6 @@ const Profile = () => {
   const [files, setFiles] = useState({
     aadhaarFront: null,
     aadhaarBack: null,
-    panCard: null,
     holdingPhoto: null
   });
 
@@ -109,8 +108,8 @@ const Profile = () => {
     e.preventDefault();
     setKycError('');
     setKycOk(false);
-    if (!files.aadhaarFront || !files.aadhaarBack || !files.panCard || !files.holdingPhoto) {
-      setKycError('Please upload all four documents.');
+    if (!files.aadhaarFront || !files.aadhaarBack || !files.holdingPhoto) {
+      setKycError('Please upload all three documents.');
       return;
     }
     setKycSubmitting(true);
@@ -119,7 +118,6 @@ const Profile = () => {
       const fd = new FormData();
       fd.append('aadhaarFront', files.aadhaarFront);
       fd.append('aadhaarBack', files.aadhaarBack);
-      fd.append('panCard', files.panCard);
       fd.append('holdingPhoto', files.holdingPhoto);
       const res = await fetch(`${API_BASE}/user/kyc/submit`, {
         method: 'POST',
@@ -136,7 +134,6 @@ const Profile = () => {
       setFiles({
         aadhaarFront: null,
         aadhaarBack: null,
-        panCard: null,
         holdingPhoto: null
       });
       fetchProfile();
@@ -246,7 +243,7 @@ const Profile = () => {
           </span>
         </div>
         <p className="text-white/60 text-sm mb-4">
-          Submit when you are ready to withdraw. Upload Aadhaar (front &amp; back), PAN card, and a clear photo of yourself holding your Aadhaar. Your documents will be sent for manual approval.
+          Submit when you are ready to withdraw. Upload Aadhaar (front &amp; back) and a clear photo of yourself holding your Aadhaar. Your documents will be sent for manual approval.
         </p>
 
         {kycStatus === 'pending' && (
@@ -272,7 +269,6 @@ const Profile = () => {
             {[
               { key: 'aadhaarFront', label: 'Aadhaar card — front' },
               { key: 'aadhaarBack', label: 'Aadhaar card — back' },
-              { key: 'panCard', label: 'PAN card' },
               { key: 'holdingPhoto', label: 'Your photo holding Aadhaar' }
             ].map(({ key, label }) => (
               <div key={key}>
@@ -310,7 +306,6 @@ const Profile = () => {
               {[
                 { k: 'aadhaarFront', label: 'Aadhaar front' },
                 { k: 'aadhaarBack', label: 'Aadhaar back' },
-                { k: 'panCard', label: 'PAN' },
                 { k: 'holdingPhoto', label: 'Holding photo' }
               ].map(({ k, label }) => {
                 const name = profile.kycFiles[k];
